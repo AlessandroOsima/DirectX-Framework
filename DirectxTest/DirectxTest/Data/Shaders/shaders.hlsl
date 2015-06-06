@@ -6,16 +6,14 @@ struct VOut
 
 cbuffer ConstantBuffer
 {
-	float3 positionOffset;
+	float4x4 transformMatrix;
 };
 
 VOut VShader(float4 position : POSITION, float4 color : COLOR)
 {
     VOut output;
 
-    output.position = position;
-	output.position.x += positionOffset.x;
-	output.position.y += positionOffset.y;
+    output.position = mul(transformMatrix, position);
 
     output.color = color;
 

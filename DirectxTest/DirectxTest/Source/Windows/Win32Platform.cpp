@@ -60,7 +60,11 @@ void Win32Platform::InitWindow(const WindowData & windowData)
 
 	RegisterClassEx(&wnd);
 
-	RECT clientRect{ 0, 0, windowData.width, windowData.height };
+	RECT clientRect; //{ 0, 0, windowData.width, windowData.height };
+    clientRect.bottom = windowData.height;
+    clientRect.left = 0;
+    clientRect.right = windowData.width;
+    clientRect.top = 0;
 
 	AdjustWindowRect(&clientRect, WS_OVERLAPPEDWINDOW, FALSE);
 

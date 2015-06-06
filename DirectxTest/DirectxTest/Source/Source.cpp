@@ -8,9 +8,10 @@ namespace WinDataConfigs
 
 int WINAPI  WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
 {
-	Win32Platform ptf {};
+	Win32Platform ptf;
 
 	ptf.Init(WinDataConfigs::windowed800x600);
+
 
 	int returnStatus = ptf.RunLoop();
 
