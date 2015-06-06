@@ -32,7 +32,7 @@ namespace Graph
 
         void scale(const Math::Vector3f & scaleAmount);
 
-        inline Math::Matrix44 getWorld()
+        inline Math::Matrix44 getWorld() const
         {
             return rotateMatrix * scaleMatrix * translateMatrix;
         }

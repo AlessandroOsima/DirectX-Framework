@@ -22,6 +22,9 @@ void Win32Platform::Init(const WindowData & windowData)
 {
 	InitWindow(windowData);
 	renderer.Init(windowData, hWnd);
+	scene.Init(&renderer);
+
+	userApp.OnInit(scene);
 }
 
 int Win32Platform::RunLoop()
@@ -37,7 +40,9 @@ int Win32Platform::RunLoop()
 			DispatchMessage(&message);
 		}
 
-		renderer.Render();
+		userApp.OnPreRender(scene);
+		scene.Render();
+		userApp.OnPreRender(scene);
 	}
 
 	return 0;
@@ -78,6 +83,7 @@ void Win32Platform::InitWindow(const WindowData & windowData)
 
 Win32Platform::~Win32Platform()
 {
+	userApp.OnDeInit(scene);
 	renderer.DeInit();
 }
 

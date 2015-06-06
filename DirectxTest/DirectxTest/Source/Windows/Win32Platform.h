@@ -10,9 +10,10 @@
 
 //DirectX related headers
 #include "..\Graph\Directx.h"
-
-
 #include <string>
+
+#include "../App/App.h"
+#include "../Graph/Scene.h"
 
 class Win32Platform
 {
@@ -29,6 +30,8 @@ private:
 	void InitWindow(const WindowData & windowData);
 	bool endApp;
 	HWND hWnd;
+	App::AppCallbacks userApp;
+	Graph::Scene scene;
 
 	DirectxRenderer renderer;
 
