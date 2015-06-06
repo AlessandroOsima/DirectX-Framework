@@ -367,6 +367,7 @@ void DirectxRenderer::DeInit()
     }
 
 	backbuffer->Release();
+	depthBuffer->Release();
 	devcon->Release();
 	dev->Release();
 	swapchain->Release();
