@@ -1,4 +1,5 @@
 #include "Windows\Win32Platform.h"
+#include "App\Drawer\Drawer.h"
 
 namespace WinDataConfigs
 {
@@ -10,7 +11,7 @@ int WINAPI  WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 {
 	Win32Platform ptf;
 
-	ptf.Init(WinDataConfigs::windowed800x600);
+	ptf.Init(WinDataConfigs::windowed800x600, new App::Drawer());
 
 
 	int returnStatus = ptf.RunLoop();

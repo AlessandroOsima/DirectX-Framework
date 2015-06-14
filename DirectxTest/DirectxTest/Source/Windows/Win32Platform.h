@@ -20,7 +20,7 @@ class Win32Platform
 public:
 	Win32Platform();
 
-	void Init(const WindowData & windowData);
+	void Init(const WindowData & windowData, App::AppCallbacks * userApp);
 	int RunLoop();
 	void QuitApp() { endApp = true; }
 
@@ -30,7 +30,7 @@ private:
 	void InitWindow(const WindowData & windowData);
 	bool endApp;
 	HWND hWnd;
-	App::AppCallbacks userApp;
+	App::AppCallbacks * userApp;
 	Graph::Scene scene;
 
 	DirectxRenderer renderer;

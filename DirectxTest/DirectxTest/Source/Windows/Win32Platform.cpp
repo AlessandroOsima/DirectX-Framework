@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <tchar.h>
 #include <string>
+#include <assert.h>
 
 LRESULT CALLBACK WindowsMessages(
 	_In_  HWND hwnd,
@@ -18,13 +19,17 @@ Win32Platform::Win32Platform() : endApp(false)
 {
 }
 
-void Win32Platform::Init(const WindowData & windowData)
+void Win32Platform::Init(const WindowData & windowData, App::AppCallbacks * appCallbacks)
 {
+
+	assert(appCallbacks);
+
+	this->userApp = appCallbacks;
 	InitWindow(windowData);
 	renderer.Init(windowData, hWnd);
 	scene.Init(&renderer);
 
-	userApp.OnInit(scene);
+	userApp->OnInit(scene);
 }
 
 int Win32Platform::RunLoop()
@@ -40,9 +45,9 @@ int Win32Platform::RunLoop()
 			DispatchMessage(&message);
 		}
 
-		userApp.OnPreRender(scene);
+		userApp->OnPreRender(scene);
 		scene.Render();
-		userApp.OnPreRender(scene);
+		userApp->OnPreRender(scene);
 	}
 
 	return 0;
@@ -83,7 +88,7 @@ void Win32Platform::InitWindow(const WindowData & windowData)
 
 Win32Platform::~Win32Platform()
 {
-	userApp.OnDeInit(scene);
+	userApp->OnDeInit(scene);
 	renderer.DeInit();
 }
 

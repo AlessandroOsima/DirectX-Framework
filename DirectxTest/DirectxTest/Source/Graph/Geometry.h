@@ -16,15 +16,29 @@ namespace Graph
             return vertices;
         }
 
-        inline const std::vector<Math::Vertex> & setVertices(const std::vector<Math::Vertex> & vertices)
+		inline const std::vector<int> & getIndices() const
+		{
+			return indices;
+		}
+
+        inline void setVertices(const std::vector<Math::Vertex> & vertices)
         {
             this->vertices = vertices;
         }
+		inline void setIndices(const std::vector<int> & indices)
+		{
+			this->indices = indices;
+		}
 
         inline void addVertex(const Math::Vertex & vertex)
         {
             vertices.push_back(vertex);
         }
+
+		inline void addIndex(int index)
+		{
+			indices.push_back(index);
+		}
 
         void rotate(const Math::Vector3f & rotate);
 
@@ -39,6 +53,7 @@ namespace Graph
 
     private:
         std::vector<Math::Vertex> vertices;
+		std::vector<int> indices;
 
         Math::Matrix44 scaleMatrix;
         Math::Matrix44 translateMatrix;

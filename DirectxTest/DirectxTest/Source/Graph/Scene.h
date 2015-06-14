@@ -13,7 +13,7 @@ namespace Graph
 	{
 	public:
 		void AddGeometry(const Graph::Geometry & geometryData);
-		inline const std::vector<Graph::Geometry> & GetGeometries() const;
+		inline std::vector<Graph::Geometry> & GetGeometries();
 
 		void Init(DirectxRenderer * renderer);
 		void Render();
@@ -24,7 +24,7 @@ namespace Graph
 
 	};
 
-	const std::vector<Graph::Geometry> & Scene::GetGeometries() const
+	std::vector<Graph::Geometry> & Scene::GetGeometries() 
 	{
 		return geometries;
 	}

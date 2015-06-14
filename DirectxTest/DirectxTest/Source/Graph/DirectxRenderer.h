@@ -26,6 +26,7 @@ public:
 private:
 
 	void buildVertexBufferForGeometry(const Graph::Geometry & geometry, unsigned int geometryId);
+	void buildIndexBufferForGeometry(const Graph::Geometry & geometry, unsigned int geometryId);
 
 	//DirectX vars
 	IDXGISwapChain *swapchain;
@@ -42,7 +43,8 @@ private:
 	ShaderSet sSet;
 
 
-    std::vector<ID3D11Buffer *> vertexBuffers;
+	std::vector<ID3D11Buffer *> vertexBuffers;
+	std::vector<ID3D11Buffer *> indexBuffers;
 
     Math::Matrix44 projectionMatrix;
 	Math::Matrix44 lookAtMatrix;

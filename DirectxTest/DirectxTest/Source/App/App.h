@@ -6,9 +6,9 @@ namespace App
 	{
 	public:
 
-		void OnInit(Graph::Scene & scene);
-		void OnPreRender(Graph::Scene & scene);
-		void OnPostRender(Graph::Scene & scene);
-		void OnDeInit(Graph::Scene & scene);
+		virtual void OnInit(Graph::Scene & scene) = 0;
+		virtual void OnPreRender(Graph::Scene & scene) = 0;
+		virtual void OnPostRender(Graph::Scene & scene) = 0;
+		virtual void OnDeInit(Graph::Scene & scene) = 0;
 	};
 }

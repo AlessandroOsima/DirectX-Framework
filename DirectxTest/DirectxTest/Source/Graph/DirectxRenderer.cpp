@@ -188,6 +188,8 @@ void DirectxRenderer::OnPreRender()
 
 void DirectxRenderer::RenderGeometry(const Graph::Geometry & geometry, unsigned int geometryIndex)
 {
+	devcon->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
 	Math::Matrix44 finalMatrix;
 
 	finalMatrix.identity();
@@ -209,12 +211,14 @@ void DirectxRenderer::RenderGeometry(const Graph::Geometry & geometry, unsigned 
 	UINT offset = 0;
 
 	devcon->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-
-	devcon->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	devcon->IASetIndexBuffer(indexBuffers[geometryIndex], DXGI_FORMAT_R32_UINT, 0);
+	
 
 	//Draw on the backbuffer with the current viewport
-	unsigned int numToDraw = geometry.getVertices().size();
-	devcon->Draw(numToDraw, 0);
+	//unsigned int numToDraw = geometry.getVertices().size();
+	//devcon->Draw(numToDraw, 0);
+
+	devcon->DrawIndexed(geometry.getIndices().size(), 0, 0);
 }
 
 void DirectxRenderer::OnPostRender()
@@ -244,6 +248,7 @@ void DirectxRenderer::BuildBuffersForGeometry(const Graph::Geometry & geometry, 
 {
 
 	buildVertexBufferForGeometry(geometry, indexToBuffer);
+	buildIndexBufferForGeometry(geometry, indexToBuffer);
 
 }
 
@@ -286,4 +291,41 @@ void DirectxRenderer::buildVertexBufferForGeometry(const Graph::Geometry & geome
 		vertexBuffers.push_back(vertexBuffer);
 	}
     
+}
+
+void DirectxRenderer::buildIndexBufferForGeometry(const Graph::Geometry & geometry, unsigned int geometryId)
+{
+
+	ID3D11Buffer * indexBuffer;
+
+	//create a vertex buffer
+	D3D11_BUFFER_DESC bd;
+	ZeroMemory(&bd, sizeof(bd));
+
+	bd.Usage = D3D11_USAGE_DYNAMIC;
+	bd.ByteWidth = sizeof(int) * geometry.getIndices().size();
+	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+	dev->CreateBuffer(&bd, nullptr, &indexBuffer);
+
+	//map and copy vertex data to the created vertex buffer
+	D3D11_MAPPED_SUBRESOURCE ms;
+	devcon->Map(indexBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+	memcpy(ms.pData, geometry.getIndices().data(), sizeof(int) * geometry.getIndices().size());
+	devcon->Unmap(indexBuffer, NULL);
+
+
+	if (geometryId < indexBuffers.size())
+	{
+		indexBuffers[geometryId]->Release();
+		indexBuffers[geometryId] = indexBuffer;
+	}
+	else
+	{
+		assert(geometryId == indexBuffers.size());
+
+		indexBuffers.push_back(indexBuffer);
+	}
+
 }
