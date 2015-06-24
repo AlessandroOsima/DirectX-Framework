@@ -2,6 +2,7 @@
 #include <comdef.h>
 
 
+
 std::wstring WinUtils::GetCStringFromHR(HRESULT res)
 {
 	_com_error err(res);

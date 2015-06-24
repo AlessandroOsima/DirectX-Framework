@@ -1,6 +1,6 @@
 #include "Windows\Win32Platform.h"
 #include "App\Drawer\Drawer.h"
-
+#include <memory>
 namespace WinDataConfigs
 {
 	WindowData fullscreen1440x900 = { 0, 0, 1440, 900, "Directx App", true };
@@ -11,7 +11,7 @@ int WINAPI  WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 {
 	Win32Platform ptf;
 
-	ptf.Init(WinDataConfigs::windowed800x600, new App::Drawer());
+	ptf.Init(WinDataConfigs::windowed800x600, std::unique_ptr<App::AppCallbacks>(new App::Drawer));
 
 
 	int returnStatus = ptf.RunLoop();

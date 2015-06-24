@@ -19,12 +19,13 @@ Win32Platform::Win32Platform() : endApp(false)
 {
 }
 
-void Win32Platform::Init(const WindowData & windowData, App::AppCallbacks * appCallbacks)
+void Win32Platform::Init(const WindowData & windowData, std::unique_ptr<App::AppCallbacks> & app)
 {
 
-	assert(appCallbacks);
+	assert(app);
 
-	this->userApp = appCallbacks;
+	userApp = std::move(app);
+
 	InitWindow(windowData);
 	renderer.Init(windowData, hWnd);
 	scene.Init(&renderer);

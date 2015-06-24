@@ -10,5 +10,6 @@ namespace App
 		virtual void OnPreRender(Graph::Scene & scene) = 0;
 		virtual void OnPostRender(Graph::Scene & scene) = 0;
 		virtual void OnDeInit(Graph::Scene & scene) = 0;
+		virtual ~AppCallbacks() {}
 	};
 }

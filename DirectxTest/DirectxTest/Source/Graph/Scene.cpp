@@ -14,6 +14,8 @@ namespace Graph
 
 	void Scene::AddGeometry(const Graph::Geometry & geometryData)
 	{
+		assert(activeRenderer);
+
 		if (geometryData.getVertices().size() == 0)
 		{
 			return;
@@ -22,8 +24,6 @@ namespace Graph
 		activeRenderer->BuildBuffersForGeometry(geometryData, geometries.size());
 
 		geometries.push_back(geometryData);
-
-		assert(activeRenderer);
 	}
 
 	void Scene::Render()

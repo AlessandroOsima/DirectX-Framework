@@ -50,7 +50,7 @@ namespace App
 	}
 	void Drawer::OnPreRender(Graph::Scene & scene)
 	{
-		const float increment = 0.001f;
+		const float increment = 0.005f;
 
 		if (side)
 		{
