@@ -1,6 +1,10 @@
 #pragma once
 #include "../App.h"
-#include "../../Graph/Geometry.h"
+
+namespace Graph
+{
+    class Geometry;
+}
 
 namespace App
 {
@@ -16,8 +20,9 @@ namespace App
 
 	private:
 		Graph::Geometry * geometry;
-		float rotAmount = 0;
-		bool side = true;
+        Graph::Geometry * otherGeometry;
+		float rotAmount;
+		bool side;
 	};
 
 }

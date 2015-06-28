@@ -186,13 +186,17 @@ namespace Math
 
 	struct Vertex
 	{
-        Vertex(Vector3f position, Color color) : position(position), color(color) 
+        Vertex(Vector3f position, Color color, Vector3f normal) : position(position), color(color), normal(normal)
         {
         }
 
+        Vertex(Vector3f position, Color color) : position(position), color(color), normal(Vector3f(0,0,0))
+        {
+        }
 
 		Vector3f position;
 		Color color;
+        Vector3f normal;
 	};
 
 }

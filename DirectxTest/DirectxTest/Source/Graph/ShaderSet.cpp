@@ -17,7 +17,7 @@ bool ShaderSet::LoadFromFile(const std::wstring & vertextShaderPath, const std::
 
 	ID3D10Blob  * Errors;
 
-	HRESULT res = D3DCompileFromFile(vertextShaderPath.c_str(), 0, 0, vertexShaderMainFunction.c_str(), "vs_4_0", 0, 0, &VSBlob, &Errors);
+	HRESULT res = D3DCompileFromFile(vertextShaderPath.c_str(), 0, 0, vertexShaderMainFunction.c_str(), "vs_4_0", D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_PREFER_FLOW_CONTROL, 0, &VSBlob, &Errors);
 	if (res != S_OK || Errors != nullptr)
 	{
 		WinUtils::PrintErrorMessage(res, "Error loading VS from file : ","Error");
@@ -33,7 +33,7 @@ bool ShaderSet::LoadFromFile(const std::wstring & vertextShaderPath, const std::
 		return false;
 	}
 
-	res = D3DCompileFromFile(pixelShaderPath.c_str(), 0, 0, pixelShaderMainFunction.c_str(), "ps_4_0", 0, 0, &PSBlob, &Errors);
+	res = D3DCompileFromFile(pixelShaderPath.c_str(), 0, 0, pixelShaderMainFunction.c_str(), "ps_4_0", D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_PREFER_FLOW_CONTROL, 0, &PSBlob, &Errors);
 	if (res != S_OK || Errors != nullptr)
 	{
 		WinUtils::PrintErrorMessage(res, "Error loading PS from file : ", "Error");

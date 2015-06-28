@@ -12,18 +12,28 @@ namespace Graph
 		activeRenderer = renderer;
 	}
 
-	void Scene::AddGeometry(const Graph::Geometry & geometryData)
+	Graph::Geometry * Scene::AddGeometry(std::unique_ptr<Graph::Geometry> && geometryData)
 	{
 		assert(activeRenderer);
+        assert(geometryData);
 
-		if (geometryData.getVertices().size() == 0)
+        
+		if (geometryData->getVertices().size() == 0)
 		{
-			return;
+			return nullptr;
 		}
+        
+		activeRenderer->BuildBuffersForGeometry(*geometryData, geometries.size());
 
-		activeRenderer->BuildBuffersForGeometry(geometryData, geometries.size());
+        
+        geometries.push_back(std::move(geometryData));
 
-		geometries.push_back(geometryData);
+        
+		return geometries[geometries.size() - 1].get();
+        
+
+        return nullptr;
+
 	}
 
 	void Scene::Render()
@@ -32,7 +42,8 @@ namespace Graph
 
 		for (int i = 0; i < geometries.size(); i++)
 		{
-			activeRenderer->RenderGeometry(geometries[i], i);
+            activeRenderer->SetPrimitiveTopology(geometries[i]->GetPrimitiveTopology());
+			activeRenderer->RenderGeometry(*geometries[i], i);
 		}
 		
 		activeRenderer->OnPostRender();

@@ -1,30 +1,34 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 #include "Geometry.h"
 #include "Directx.h"
 
 
-class DirectxRenderer;
+namespace Graph
+{
+    class DirectxRenderer;
+}
 
 namespace Graph
 {
 	class Scene
 	{
 	public:
-		void AddGeometry(const Graph::Geometry & geometryData);
-		inline std::vector<Graph::Geometry> & GetGeometries();
+		Graph::Geometry * AddGeometry(std::unique_ptr<Geometry> && geometryData);
+		inline const std::vector<std::unique_ptr<Geometry>> & Scene::GetGeometries();
 
 		void Init(DirectxRenderer * renderer);
 		void Render();
 
 	private:
-		std::vector<Graph::Geometry> geometries;
+		std::vector<std::unique_ptr<Geometry>> geometries;
 		DirectxRenderer * activeRenderer;
 
 	};
 
-	std::vector<Graph::Geometry> & Scene::GetGeometries() 
+	const std::vector<std::unique_ptr<Geometry>> & Scene::GetGeometries() 
 	{
 		return geometries;
 	}

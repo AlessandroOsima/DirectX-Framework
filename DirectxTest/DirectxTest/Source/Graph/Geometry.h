@@ -2,6 +2,7 @@
 #include <vector>
 #include "../Math/Math.h"
 #include "../Math/Matrix44.h"
+#include "Graph.h"
 
 namespace Graph
 {
@@ -40,6 +41,16 @@ namespace Graph
 			indices.push_back(index);
 		}
 
+        inline void SetPrimitiveTopology(PrimitiveTopology primitiveTopology)
+        {
+            this->primitiveTopology = primitiveTopology;
+        }
+
+        inline PrimitiveTopology GetPrimitiveTopology()
+        {
+            return primitiveTopology;
+        }
+
         void rotate(const Math::Vector3f & rotate);
 
         void translate(const Math::Vector3f & translate);
@@ -54,6 +65,7 @@ namespace Graph
     private:
         std::vector<Math::Vertex> vertices;
 		std::vector<int> indices;
+        PrimitiveTopology primitiveTopology;
 
         Math::Matrix44 scaleMatrix;
         Math::Matrix44 translateMatrix;

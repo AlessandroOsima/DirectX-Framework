@@ -48,7 +48,7 @@ int Win32Platform::RunLoop()
 
 		userApp->OnPreRender(scene);
 		scene.Render();
-		userApp->OnPreRender(scene);
+		userApp->OnPostRender(scene);
 	}
 
 	return 0;

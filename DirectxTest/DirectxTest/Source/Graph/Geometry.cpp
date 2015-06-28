@@ -2,7 +2,7 @@
 
 namespace Graph
 {
-    Geometry::Geometry()
+    Geometry::Geometry() : primitiveTopology(PrimitiveTopology::TriangleList)
     {
         scaleMatrix.identity();
         translateMatrix.identity();

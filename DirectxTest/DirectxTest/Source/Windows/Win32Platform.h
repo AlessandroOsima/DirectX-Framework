@@ -34,6 +34,6 @@ private:
 	std::unique_ptr<App::AppCallbacks> userApp;
 	Graph::Scene scene;
 
-	DirectxRenderer renderer;
+	Graph::DirectxRenderer renderer;
 
 };
