@@ -52,6 +52,7 @@ namespace Graph
 
         Math::Matrix44 projectionMatrix;
         Math::Matrix44 lookAtMatrix;
+        Math::Vector4f eyeLocation;
         bool usePerspective;
     };
 }

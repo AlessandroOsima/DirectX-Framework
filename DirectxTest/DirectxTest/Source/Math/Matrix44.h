@@ -26,9 +26,10 @@ namespace Math
 		void lookAt(Vector3f eye, Vector3f at, Vector3f up);
         void ortho(float width, float height, float zNear, float zFar);
 		void perspective(float fovHeight, float aspect, float near, float far);
-
-
-        //void  lookAtLH();
+        inline  Math::Vector3f GetTranslation() const
+        {
+            return Math::Vector3f(axisW.x,axisW.y,axisW.z);
+        }
         
         Vector4f operator*(const Vector4f & vector) const;
         Vector3f operator*(const Vector3f & vector) const;

@@ -4,7 +4,6 @@
 
 namespace Graph
 {
-
 	void Scene::Init(DirectxRenderer * renderer)
 	{
 		assert(renderer);

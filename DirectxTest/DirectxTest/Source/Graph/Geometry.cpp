@@ -4,9 +4,11 @@ namespace Graph
 {
     Geometry::Geometry() : primitiveTopology(PrimitiveTopology::TriangleList)
     {
-        scaleMatrix.identity();
-        translateMatrix.identity();
-        rotateMatrix.identity();
+        scaleMatrix.scale(Math::Vector3f(1,1,1));
+        translateMatrix.translate(Math::Vector3f(0,0,0));
+        rotateMatrix.rotateX(0);
+        rotateMatrix.rotateY(0);
+        rotateMatrix.rotateZ(0);
     }
 
     void Geometry::rotate(const Math::Vector3f & rotate)

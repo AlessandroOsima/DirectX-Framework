@@ -62,6 +62,21 @@ namespace Graph
             return rotateMatrix * scaleMatrix * translateMatrix;
         }
 
+        inline const Math::Matrix44 & getRotation() const
+        {
+            return rotateMatrix;
+        }
+
+        inline const Math::Matrix44 & getScale() const
+        {
+            return scaleMatrix;
+        }
+
+        inline const Math::Matrix44 & getTranslate() const
+        {
+            return translateMatrix;
+        }
+
     private:
         std::vector<Math::Vertex> vertices;
 		std::vector<int> indices;

@@ -151,7 +151,7 @@ namespace Graph
 	    ZeroMemory(&constantBd, sizeof(constantBd));
 
 	    constantBd.Usage = D3D11_USAGE_DEFAULT;
-	    constantBd.ByteWidth = 128;
+	    constantBd.ByteWidth = 144;
 	    constantBd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 
 	    dev->CreateBuffer(&constantBd, 0, &constantBuffer);
@@ -162,7 +162,9 @@ namespace Graph
 	    {
 		    projectionMatrix.perspective(Math::Deg2Rad(45), 800 / 600, 1.0f, 2000.0f);
 
-		    Math::Vector3f eye = Math::Vector3f(0, 0, -400);
+            eyeLocation = Math::Vector4f(0,0,0,0);
+
+		    Math::Vector3f eye = Math::Vector3f(eyeLocation.x, eyeLocation.y, eyeLocation.z);
 		    Math::Vector3f at = Math::Vector3f(0, 0, 10);
 		    Math::Vector3f up = Math::Vector3f(0, 1, 0);
 
@@ -196,6 +198,7 @@ namespace Graph
 		{
 			Math::Matrix44 finalMatrix;
 			Math::Matrix44 modelMatrix;
+            Math::Vector4f eye;
 		};
 
 	    Math::Matrix44 finalMatrix;
@@ -211,7 +214,10 @@ namespace Graph
 		    finalMatrix = geometry.getWorld() * projectionMatrix;
 	    }
 
-		ConstantBuffer cBuffer {finalMatrix, geometry.getWorld()};
+		ConstantBuffer cBuffer; 
+        cBuffer.finalMatrix = finalMatrix; 
+        cBuffer.modelMatrix = geometry.getRotation();
+        cBuffer.eye = eyeLocation;
 
 	    devcon->UpdateSubresource(constantBuffer, 0, 0, &cBuffer, 0, 0);
 
