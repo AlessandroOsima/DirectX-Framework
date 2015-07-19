@@ -1,9 +1,10 @@
 #pragma once
 #include "Directx.h"
 #include "ShaderSet.h"
-#include "..\Common.h"
+#include "../Common.h"
 #include "Graph.h"
 #include "Geometry.h"
+#include "Lights/Light.h"
 #include "../Math/Matrix44.h"
 #include <vector>
 
@@ -17,7 +18,7 @@ namespace Graph
         void Init(const WindowData & windowData, HWND hWnd);
 
         void OnPreRender();
-        void RenderGeometry(const Graph::Geometry & geometry, unsigned int geometryIndex);
+		void RenderGeometry(const Math::Color & ambientLight, const DirectionalLightProperties * directionalLights, const PointLightProperties * pointLights, const Graph::Geometry & geometry, unsigned int geometryIndex);
         void OnPostRender();
 
         void DeInit();
