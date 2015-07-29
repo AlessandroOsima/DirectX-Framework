@@ -42,7 +42,7 @@ namespace Graph
 		for (int i = 0; i < geometries.size(); i++)
 		{
             activeRenderer->SetPrimitiveTopology(geometries[i]->GetPrimitiveTopology());
-			activeRenderer->RenderGeometry(*geometries[i], i);
+			activeRenderer->RenderGeometry(GetAmbientLight(), GetDirectionalLights(), *geometries[i], i);
 		}
 		
 		activeRenderer->OnPostRender();

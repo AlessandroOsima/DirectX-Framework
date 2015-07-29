@@ -6,6 +6,7 @@
 
 #include "../Math/Math.h"
 #include "../Windows/WinUtils.h"
+#include "Lights/Light.h"
 #include <DirectXMath.h>
 
 /*
@@ -19,8 +20,17 @@ Math::Vertex triangle[] =
 
 */
 
+
 namespace Graph
 {
+	struct ConstantBuffer
+	{
+		Math::Matrix44 finalMatrix;
+		Math::Matrix44 modelMatrix;
+		Math::Vector4f eye;
+		Math::Color ambientLight;
+		DirectionalLightProperties  directionalLights[Constants::MAX_DIRECTIONAL_LIGHTS];
+	};
 
     DirectxRenderer::DirectxRenderer() :usePerspective(true)
     {
@@ -151,12 +161,13 @@ namespace Graph
 	    ZeroMemory(&constantBd, sizeof(constantBd));
 
 	    constantBd.Usage = D3D11_USAGE_DEFAULT;
-	    constantBd.ByteWidth = 144;
+	    constantBd.ByteWidth = 144 + sizeof(Math::Vector4f) + sizeof(DirectionalLightProperties) * Constants::MAX_DIRECTIONAL_LIGHTS;
 	    constantBd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 
 	    dev->CreateBuffer(&constantBd, 0, &constantBuffer);
 
 	    devcon->VSSetConstantBuffers(0, 1, &constantBuffer);
+		devcon->PSSetConstantBuffers(0, 1, &constantBuffer);
 
 	    if (usePerspective)
 	    {
@@ -192,14 +203,9 @@ namespace Graph
 	    devcon->ClearDepthStencilView(depthBuffer, D3D11_CLEAR_DEPTH, 1.0f, 0.f);
     }
 
-    void DirectxRenderer::RenderGeometry(const Graph::Geometry & geometry, unsigned int geometryIndex)
+	void DirectxRenderer::RenderGeometry(const Math::Color & ambientLight, const DirectionalLightProperties * directionalLights, const Graph::Geometry & geometry, unsigned int geometryIndex)
     {
-		struct ConstantBuffer
-		{
-			Math::Matrix44 finalMatrix;
-			Math::Matrix44 modelMatrix;
-            Math::Vector4f eye;
-		};
+		assert(directionalLights);
 
 	    Math::Matrix44 finalMatrix;
 
@@ -218,6 +224,13 @@ namespace Graph
         cBuffer.finalMatrix = finalMatrix; 
         cBuffer.modelMatrix = geometry.getRotation();
         cBuffer.eye = eyeLocation;
+		cBuffer.ambientLight = ambientLight;
+		
+		for (int i = 0; i < Constants::MAX_DIRECTIONAL_LIGHTS; i++)
+		{
+			cBuffer.directionalLights[i] = directionalLights[i];
+		}
+
 
 	    devcon->UpdateSubresource(constantBuffer, 0, 0, &cBuffer, 0, 0);
 

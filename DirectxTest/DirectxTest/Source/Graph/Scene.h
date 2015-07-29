@@ -15,9 +15,6 @@ namespace Graph
 
 namespace Graph
 {
-	typedef std::array<std::unique_ptr<DirectionalLightProperties>, Graph::Constants::MAX_DIRECTIONAL_LIGHTS> DirectionalLightsArray;
-	typedef std::array<std::unique_ptr<PointLightProperties>, Graph::Constants::MAX_POINT_LIGHTS> PointLightsArray;
-
 	class Scene
 	{
 	public:
@@ -28,36 +25,34 @@ namespace Graph
 		void Init(DirectxRenderer * renderer);
 		void Render();
 
-        inline const DirectionalLightsArray & GetDirectionalLights() const
+		inline DirectionalLightProperties * GetDirectionalLights()
         {
             return directionalLights;
         }
 
-        inline const PointLightsArray & GetPointLights() const
+		inline PointLightProperties * GetPointLights()
         {
             return pointLights;
         }
 
-		inline DirectionalLightProperties * addDirectionalLight(unsigned int index, std::unique_ptr<DirectionalLightProperties> && directionalLightProperties)
-        {
-            directionalLights[index] = std::move(directionalLightProperties);
+		inline const Math::Color & GetAmbientLight()
+		{
+			return ambientLight;
+		}
 
-
-			return directionalLights[index].get();
-        }
-
-        inline PointLightProperties * addPointLight(unsigned int index, std::unique_ptr<PointLightProperties> && pointLightProperties) 
-        {
-            pointLights[index] = std::move(pointLightProperties);
-            return pointLights[index].get();
-        }
+		inline void SetAmbientLight(const Math::Color & ambientLight)
+		{
+			this->ambientLight = ambientLight;
+		}
 
 	private:
 		std::vector<std::unique_ptr<Geometry>> geometries;
 		DirectxRenderer * activeRenderer;
 
-        DirectionalLightsArray directionalLights;
-		PointLightsArray pointLights;
+		DirectionalLightProperties directionalLights[Graph::Constants::MAX_DIRECTIONAL_LIGHTS];
+		PointLightProperties pointLights[Graph::Constants::MAX_POINT_LIGHTS];
+
+		Math::Color ambientLight;
 	};
 
 	const std::vector<std::unique_ptr<Geometry>> & Scene::GetGeometries() 

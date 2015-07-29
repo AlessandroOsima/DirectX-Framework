@@ -9,6 +9,7 @@ namespace App
 
 	void Drawer::OnInit(Graph::Scene & scene)
 	{
+		scene.SetAmbientLight(Math::Color(0.f, 0.f, 0.f, 0.f));
 
         std::unique_ptr<Graph::Geometry> gm1(new Graph::Geometry);
 
@@ -18,7 +19,17 @@ namespace App
 		gm1->addVertex(Math::Vertex(Math::Vector3f(40, -40, 0), Math::Color(0.f, 1.f, 0.f, 1.f), Math::Vector3f(0, 0, -1)));
 		gm1->addVertex(Math::Vertex(Math::Vector3f(-40, -40, 0), Math::Color(0.f, 0.f, 1.f, 1.f), Math::Vector3f(0, 0, -1)));
 		gm1->addVertex(Math::Vertex(Math::Vector3f(40, 40, 0), Math::Color(0.f, 0.f, 1.f, 1.f), Math::Vector3f(0, 0, -1)));
+		
 
+		Graph::DirectionalLightProperties * dirL = scene.GetDirectionalLights();
+		dirL->direction = Math::Vector4f(0.5f,0.4f,1,0);
+		dirL->color = Math::Color(0.5f,0.5f,0.5f,500);
+		
+	    /*Graph::DirectionalLightProperties * dirL2 = &scene.GetDirectionalLights()[1];
+		dirL2->direction = Math::Vector4f(0, -1, 0, 0);
+	    dirL2->color = Math::Color(1.f, 0, 0, 1);*/
+
+		
 
         //Using vs 2012
         const int size = 6;
@@ -33,11 +44,11 @@ namespace App
 
 		gm1->setIndices(indicesVecor);
 
-        gm1->translate(Math::Vector3f(0, 0, 500));
+        gm1->translate(Math::Vector3f(0, 0, 300));
 
-        gm1->scale(Math::Vector3f(3, 3, 3));
+        gm1->scale(Math::Vector3f(1, 1, 1));
 
-		//gm1->rotate(Math::Vector3f(0, -60, 0));
+		gm1->rotate(Math::Vector3f(0, 0, 0));
 
 		geometry = scene.AddGeometry(std::move(gm1));
 
@@ -100,7 +111,7 @@ namespace App
             return;
         }
 
-		const float increment = 0.005f;
+		const float increment = 0.05f;
 
 		if (side)
 		{
@@ -121,7 +132,7 @@ namespace App
 			side = true;
 		}
 
-		geometry->rotate(Math::Vector3f(0,-rotAmount,0));
+		geometry->rotate(Math::Vector3f(rotAmount, 0, 0));
         //otherGeometry->rotate(Math::Vector3f(rotAmount,0,0));
 	}
 	void Drawer::OnPostRender(Graph::Scene & scene)

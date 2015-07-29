@@ -3,14 +3,17 @@
 #include "../../Math/Math.h"
 #include "../../Math/Matrix44.h"
 #include "../Graph.h"
+#include "../Directx.h"
+#include <array>
+#include <memory>
 
 namespace Graph
 {
     class DirectionalLightProperties
     {
     public:
-        Math::Vector4f worldPosition;
-        Math::Color color;
+        Math::Vector4f direction;
+        Math::Color color; //w is specular
     };
 
     class PointLightProperties
