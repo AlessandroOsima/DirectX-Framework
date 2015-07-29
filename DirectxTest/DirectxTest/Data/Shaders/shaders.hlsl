@@ -11,8 +11,6 @@ struct PointLightProperties
 {
 	float4 worldPosition;
 	float4 color;
-	float specularExponent;
-	float radius;
 };
 
 struct VOut
@@ -20,6 +18,7 @@ struct VOut
     float4 position : SV_POSITION;
     float4 color : COLOR;
 	float4 normal : TEXTCOORD0;
+	float4 worldPos : TEXCOORD1;
 };
 
 cbuffer ConstantBuffer
@@ -37,84 +36,15 @@ VOut VShader(float4 position : POSITION, float4 color : COLOR, float4 normal : N
     VOut output;
 
     output.position = mul(transformMatrix, position);
+	output.worldPos = output.position;
 	output.color = color;
-	output.normal = normal;
-
-    //float4 lightVector = float4(0,0,1,0);
-
-	/*
-	float4 lightPos = directionalLightsProperties[i].worldPosition;
-	float4 lightColor = directionalLightsProperties[i].color;
-	float specularExp = 10;
-
-	float4 specularColor = float4(0, 0, 0, 0);
-
-	float4 lightVector = float4(normalize(lightPos - output.position).xyz,0);
-
-	float4 reflectedLight = normalize(reflect(normalize(lightVector), normal));
-	float4 eyeVertex = normalize(output.position - eyePosition);
-	float specularFactor = dot(eyeVertex, reflectedLight);
-
-	if (specularFactor > 0)
-	{
-	specularFactor = pow(specularFactor, specularExp);
-	specularColor = lightColor * specularFactor;
-	}
-
-	float d = length(lightVector);
-
-	float4 normalRotated = normalize(mul(modelRotation, normal));
-	float diffuseBrightness = saturate(dot(normalRotated, lightVector));
-
-	float a0 = 0;
-	float a1 = 0;
-	float a2 = 0;
-
-	float attenuationFactor = a0 + a1 * d + a2 * d * d;
-
-	output.color = output.color + specularColor + lightColor * diffuseBrightness;
+	output.normal = mul(modelRotation, normal);
 
 
-	///////
-	float4 lightPos = float4(0, 0, 300, 0);
-    float4 lightColor = float4(1,1,1,1);
-    float4 ambientLight = float4(0.1,0.1,0.1,1);
-    float specularExp = 10;
-
-    float4 specularColor = float4(0,0,0,0);
-
-    float4 lightVector = output.position - lightPos;
-    float4 reflectedLight = normalize(reflect(normalize(lightVector),normal));
-    float4 eyeVertex = normalize(output.position - eyePosition);
-    float specularFactor = dot(eyeVertex, reflectedLight);
-
-    if(specularFactor > 0)
-    {
-        specularFactor = pow(specularFactor, specularExp);
-        specularColor = lightColor * specularFactor;
-    }
-
-
-    float d = length(lightVector);
-    
-
-	float4 normalRotated = normalize(mul(modelRotation, normal));
-    float diffuseBrightness = saturate(dot(normalRotated, normalize(lightVector)));
-    
-
-    float a0 = 0;
-    float a1 = 0;
-    float a2 = 0;
-
-    float attenuationFactor = a0 + a1 * d + a2 * d * d ;
-
-    output.color = specularColor + lightColor * diffuseBrightness ;
-	*/
     return output;
 }
 
-
-float4 PShader(float4 position : SV_POSITION, float4 color : COLOR, float4 normal : TEXTCOORD0) : SV_TARGET
+float4 PShader(float4 position : SV_POSITION, float4 color : COLOR, float4 normal : TEXTCOORD0, float4 worldPos : TEXCOORD1) : SV_TARGET
 {
 	float4 finalColor = ambientColor;
 	normal = normalize(normal);
@@ -128,7 +58,7 @@ float4 PShader(float4 position : SV_POSITION, float4 color : COLOR, float4 norma
 		float4 specularColor = float4(0, 0, 0, 0);
 
 		float4 reflectedLight = reflect(lightDir, normal);
-		float4 eyeVertex = normalize(eyePosition - position);
+		float4 eyeVertex = normalize(eyePosition - worldPos);
 		float specularFactor = max(dot(eyeVertex, reflectedLight), 0);
 
 		float4 normalRotated = normalize(mul(modelRotation, normal));
@@ -141,6 +71,44 @@ float4 PShader(float4 position : SV_POSITION, float4 color : COLOR, float4 norma
 		}
 
 		finalColor += specularColor + lightColor * diffuseBrightness;
+	}
+
+	for (int x = 0; x < MAX_POINT_LIGHTS; x++)
+	{
+		float4 lightPos = pointLightsProperties[x].worldPosition;
+		float4 lightDist = float4((lightPos - worldPos).xyz, 0);
+
+		float distance = length(lightDist);
+		float4 lightDir = lightDist / distance;
+		
+
+		float4 lightColor = float4(pointLightsProperties[x].color.xyz, 0);
+		float specularExp = pointLightsProperties[x].color.w;
+
+		float4 specularColor = float4(0, 0, 0, 0);
+
+		normal.w = 0;
+		float4 reflectedLight = float4(reflect(lightDir.xyz, normal.xyz),0);
+
+		float4 eyeVertex = float4(eyePosition - worldPos);
+		float specularFactor = max(dot(eyeVertex / length(eyeVertex), reflectedLight), 0);
+
+		float4 normalRotated = normalize(mul(modelRotation, normal));
+		float diffuseBrightness = saturate(dot(normalRotated, lightDir));
+
+		if (diffuseBrightness > 0)
+		{
+			float specularBrightness = pow(specularFactor, specularExp);
+			specularColor = lightColor * specularBrightness;
+		}
+
+		float a0 = 1;
+		float a1 = 0.0045f;
+		float a2 = 0.00075f;
+
+		float attenuationFactor = a0 + a1 * distance + a2 * distance * distance;
+
+		finalColor += (specularColor + lightColor * diffuseBrightness) / attenuationFactor;
 	}
 
 	return finalColor;

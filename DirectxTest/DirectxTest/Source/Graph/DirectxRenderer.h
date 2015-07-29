@@ -18,13 +18,15 @@ namespace Graph
         void Init(const WindowData & windowData, HWND hWnd);
 
         void OnPreRender();
-		void RenderGeometry(const Math::Color & ambientLight, const DirectionalLightProperties * directionalLights,  const Graph::Geometry & geometry, unsigned int geometryIndex);
+		void RenderGeometry(const Math::Color & ambientLight, const DirectionalLightProperties * directionalLights, const PointLightProperties * pointLights, const Graph::Geometry & geometry, unsigned int geometryIndex);
         void OnPostRender();
 
         void DeInit();
 
         void BuildBuffersForGeometry(const Graph::Geometry & geometry, unsigned int indexToBuffer);
         void SetPrimitiveTopology(PrimitiveTopology primitiveTopology);
+
+		bool CreateTextureResources(const std::string & filename, ID3D11Resource ** texture, ID3D11ShaderResourceView ** shaderResource);
 
         ~DirectxRenderer();
 

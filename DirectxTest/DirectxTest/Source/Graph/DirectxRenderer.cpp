@@ -7,6 +7,7 @@
 #include "../Math/Math.h"
 #include "../Windows/WinUtils.h"
 #include "Lights/Light.h"
+#include "../ThirdParty/DDSTextureLoader/DDSTextureLoader.h"
 #include <DirectXMath.h>
 
 /*
@@ -30,6 +31,7 @@ namespace Graph
 		Math::Vector4f eye;
 		Math::Color ambientLight;
 		DirectionalLightProperties  directionalLights[Constants::MAX_DIRECTIONAL_LIGHTS];
+		PointLightProperties  pointLights[Constants::MAX_POINT_LIGHTS];
 	};
 
     DirectxRenderer::DirectxRenderer() :usePerspective(true)
@@ -149,9 +151,10 @@ namespace Graph
 		    { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		    { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
             { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	    };
 
-	    sSet.CreateInputLayout(ied, 3, dev);
+	    sSet.CreateInputLayout(ied, 4, dev);
 
 	    //set pipeline inputs
 	    devcon->IASetInputLayout(sSet.GetInputLayout());
@@ -161,7 +164,7 @@ namespace Graph
 	    ZeroMemory(&constantBd, sizeof(constantBd));
 
 	    constantBd.Usage = D3D11_USAGE_DEFAULT;
-	    constantBd.ByteWidth = 144 + sizeof(Math::Vector4f) + sizeof(DirectionalLightProperties) * Constants::MAX_DIRECTIONAL_LIGHTS;
+		constantBd.ByteWidth = 144 + sizeof(Math::Vector4f) + sizeof(DirectionalLightProperties) * Constants::MAX_DIRECTIONAL_LIGHTS + sizeof(PointLightProperties) * Constants::MAX_POINT_LIGHTS;
 	    constantBd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 
 	    dev->CreateBuffer(&constantBd, 0, &constantBuffer);
@@ -203,9 +206,10 @@ namespace Graph
 	    devcon->ClearDepthStencilView(depthBuffer, D3D11_CLEAR_DEPTH, 1.0f, 0.f);
     }
 
-	void DirectxRenderer::RenderGeometry(const Math::Color & ambientLight, const DirectionalLightProperties * directionalLights, const Graph::Geometry & geometry, unsigned int geometryIndex)
+	void DirectxRenderer::RenderGeometry(const Math::Color & ambientLight, const DirectionalLightProperties * directionalLights, const PointLightProperties * pointLights, const Graph::Geometry & geometry, unsigned int geometryIndex)
     {
 		assert(directionalLights);
+		assert(pointLights);
 
 	    Math::Matrix44 finalMatrix;
 
@@ -220,6 +224,8 @@ namespace Graph
 		    finalMatrix = geometry.getWorld() * projectionMatrix;
 	    }
 
+		devcon->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView * const *) geometry.GetDiffuseTexture().GetShaderResource());
+
 		ConstantBuffer cBuffer; 
         cBuffer.finalMatrix = finalMatrix; 
         cBuffer.modelMatrix = geometry.getRotation();
@@ -231,6 +237,10 @@ namespace Graph
 			cBuffer.directionalLights[i] = directionalLights[i];
 		}
 
+		for (int i = 0; i < Constants::MAX_POINT_LIGHTS; i++)
+		{
+			cBuffer.pointLights[i] = pointLights[i];
+		}
 
 	    devcon->UpdateSubresource(constantBuffer, 0, 0, &cBuffer, 0, 0);
 
@@ -393,4 +403,17 @@ namespace Graph
 	    }
 
     }
+
+	bool DirectxRenderer::CreateTextureResources(const std::string & filename, ID3D11Resource ** texture, ID3D11ShaderResourceView ** shaderResource)
+	{
+		HRESULT hr = DirectX::CreateDDSTextureFromFile(dev, std::wstring(filename.begin(), filename.end()).c_str(), texture, shaderResource);
+		
+		if (hr != S_OK)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
 }

@@ -17,11 +17,73 @@ namespace Math
         return degAngle * (PI/180);
     }
 
-	struct Vector2
+	template<class T>
+	class Vector2
 	{
-		float x;
-		float y;
+	public:
+
+		Vector2(T x, T y) : x(x), y(y)
+		{
+		}
+
+		Vector2()
+		{
+			zero();
+		}
+
+		inline void zero()
+		{
+			memset(this, 0, sizeof(x) * 2);
+		}
+
+		inline Vector2 operator-(const Vector2 & vector)
+		{
+			return Vector2(x - vector.x, y - vector.y);
+		}
+
+		inline Vector2 operator-()
+		{
+			return Vector2(-x, -y);
+		}
+
+		inline Vector2 operator+(const Vector2 & vector)
+		{
+			return Vector2(x + vector.x, y + vector.y);
+		}
+
+		inline float lenght()
+		{
+			return sqrt(x * x + y * y);
+		}
+
+		inline void normalize()
+		{
+			float vLenght = lenght();
+
+			x = x / vLenght;
+			y = y / vLenght;
+
+		}
+
+		inline Vector2 normal()
+		{
+			float vLenght = lenght();
+
+			return Vector2(x / vLenght, y / vLenght);
+		}
+
+		inline float dot(const Vector2 & vector)
+		{
+			return this->x * vector.x + this->y * vector.y;
+		}
+
+		T x;
+		T y;
 	};
+
+	typedef Vector2<int> Vector2i;
+	typedef Vector2<float> Vector2f;
+	typedef Vector2<double> Vector2d;
 
     template<class T> 
     class Vector3
@@ -191,17 +253,22 @@ namespace Math
 
 	struct Vertex
 	{
-        Vertex(Vector3f position, Color color, Vector3f normal) : position(position), color(color), normal(normal)
+		Vertex(Vector3f position, Color color, Vector3f normal) : position(position), color(color), normal(normal), uv({0,0})
         {
         }
 
-        Vertex(Vector3f position, Color color) : position(position), color(color), normal(Vector3f(0,0,0))
+		Vertex(Vector3f position, Color color, Vector3f normal, Vector2f uv) : position(position), color(color), normal(normal), uv(uv)
+		{
+		}
+
+		Vertex(Vector3f position, Color color) : position(position), color(color), normal(Vector3f(0, 0, 0)), uv({0,0})
         {
         }
 
 		Vector3f position;
 		Color color;
         Vector3f normal;
+		Vector2f uv;
 	};
 
 }

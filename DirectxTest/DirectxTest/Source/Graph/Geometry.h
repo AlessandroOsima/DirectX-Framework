@@ -2,6 +2,7 @@
 #include <vector>
 #include "../Math/Math.h"
 #include "../Math/Matrix44.h"
+#include "../Resources/Texture2d.h"
 #include "Graph.h"
 
 namespace Graph
@@ -11,6 +12,16 @@ namespace Graph
     public:
 
         Geometry();
+
+		inline Resources::Texture2d & GetDiffuseTexture() 
+		{
+			return diffuseTexture;
+		}
+
+		inline const Resources::Texture2d & GetDiffuseTexture() const
+		{
+			return diffuseTexture;
+		}
 
         inline const std::vector<Math::Vertex> & getVertices() const
         {
@@ -80,6 +91,8 @@ namespace Graph
     private:
         std::vector<Math::Vertex> vertices;
 		std::vector<int> indices;
+		Resources::Texture2d diffuseTexture;
+
         PrimitiveTopology primitiveTopology;
 
         Math::Matrix44 scaleMatrix;
