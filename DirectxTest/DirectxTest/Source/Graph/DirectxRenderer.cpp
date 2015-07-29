@@ -126,7 +126,7 @@ namespace Graph
 	    //windows api bullshit//////////////////////////////////////////////////////
 	    DWORD currentDirectorySize = GetCurrentDirectory(0, nullptr);
 
-	    TCHAR * shadersPath = L"\\Data\\Shaders\\shaders.hlsl";
+	    TCHAR * shadersPath = "\\Data\\Shaders\\shaders.hlsl";
 
 	    int currentDirStringLenght = currentDirectorySize + _tcslen(shadersPath);
 
@@ -136,7 +136,7 @@ namespace Graph
 
 	    _tcsncat_s(currentDirectoryBuffer, currentDirStringLenght, shadersPath, _tcslen(shadersPath));
 
-	    std::wstring shaderFilePath = std::wstring(currentDirectoryBuffer);
+	    std::string shaderFilePath = std::string(currentDirectoryBuffer);
 	    //////////////////////////////////////////////////////////////////////////
 
 	    //Load shader set
@@ -224,7 +224,9 @@ namespace Graph
 		    finalMatrix = geometry.getWorld() * projectionMatrix;
 	    }
 
-		devcon->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView * const *) geometry.GetDiffuseTexture().GetShaderResource());
+		ID3D11ShaderResourceView * resources[1] = { geometry.GetDiffuseTexture().GetShaderResource()};
+
+		devcon->PSSetShaderResources(0, 1, resources);
 
 		ConstantBuffer cBuffer; 
         cBuffer.finalMatrix = finalMatrix; 

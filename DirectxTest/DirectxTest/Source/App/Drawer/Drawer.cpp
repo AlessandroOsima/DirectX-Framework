@@ -15,7 +15,6 @@ namespace App
 		dirL->direction = Math::Vector4f(0.5f, 0.5f, 1,0);
 		dirL->color = Math::Color(0.5f, 0.5f, 0.5f, 10);*/
 
-
 		Graph::PointLightProperties * pl1 = &scene.GetPointLights()[0];
 		pl1->worldPosition = Math::Vector4f(0, 50, 190, 0);
 		pl1->color = Math::Color(1.f, 1.f, 1.f, 300);
@@ -29,6 +28,8 @@ namespace App
 		gm1->addVertex(Math::Vertex(Math::Vector3f(40, -40, 0), Math::Color(0.f, 1.f, 0.f, 1.f), Math::Vector3f(0, 0, -1), {1,1}));
 		gm1->addVertex(Math::Vertex(Math::Vector3f(-40, -40, 0), Math::Color(0.f, 0.f, 1.f, 1.f), Math::Vector3f(0, 0, -1), {0,1}));
 		gm1->addVertex(Math::Vertex(Math::Vector3f(40, 40, 0), Math::Color(0.f, 0.f, 1.f, 1.f), Math::Vector3f(0, 0, -1), {1,0}));
+
+		gm1->GetDiffuseTexture().SetFilename("WoodDiffuseTest.dds");
 		
         //Using vs 2012
         const int size = 6;
@@ -57,10 +58,10 @@ namespace App
 
 		gm2->SetPrimitiveTopology(Graph::PrimitiveTopology::TriangleList);
 
-		gm2->addVertex(Math::Vertex(Math::Vector3f(-40, 40, 0), Math::Color(1.f, 0.f, 0.f, 1.f), Math::Vector3f(0, 0, -1)));
-		gm2->addVertex(Math::Vertex(Math::Vector3f(40, -40, 0), Math::Color(0.f, 1.f, 0.f, 1.f), Math::Vector3f(0, 0, -1)));
-		gm2->addVertex(Math::Vertex(Math::Vector3f(-40, -40, 0), Math::Color(0.f, 0.f, 1.f, 1.f), Math::Vector3f(0, 0, -1)));
-		gm2->addVertex(Math::Vertex(Math::Vector3f(40, 40, 0), Math::Color(0.f, 0.f, 1.f, 1.f), Math::Vector3f(0, 0, -1)));
+		gm2->addVertex(Math::Vertex(Math::Vector3f(-40, 40, 0), Math::Color(1.f, 0.f, 0.f, 1.f), Math::Vector3f(0, 0, -1), { 0, 0 }));
+		gm2->addVertex(Math::Vertex(Math::Vector3f(40, -40, 0), Math::Color(0.f, 1.f, 0.f, 1.f), Math::Vector3f(0, 0, -1), { 1, 1 }));
+		gm2->addVertex(Math::Vertex(Math::Vector3f(-40, -40, 0), Math::Color(0.f, 0.f, 1.f, 1.f), Math::Vector3f(0, 0, -1), { 0, 1 }));
+		gm2->addVertex(Math::Vertex(Math::Vector3f(40, 40, 0), Math::Color(0.f, 0.f, 1.f, 1.f), Math::Vector3f(0, 0, -1), { 1, 0 }));
 
 		gm2->setIndices(indicesVecor);
 
@@ -69,6 +70,8 @@ namespace App
 		gm2->scale(Math::Vector3f(0.8f, 0.8f, 0.8f));
 
 		gm2->rotate(Math::Vector3f(0, 40, 0));
+
+		gm2->GetDiffuseTexture().SetFilename("WoodDiffuseTest.dds"); 
 
 		scene.AddGeometry(std::move(gm2));
 

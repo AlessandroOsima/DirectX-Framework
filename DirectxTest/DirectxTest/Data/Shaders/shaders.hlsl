@@ -1,6 +1,15 @@
 static const float MAX_DIRECTIONAL_LIGHTS = 5;
 static const float MAX_POINT_LIGHTS = 5;
 
+Texture2D diffuseTexture;
+
+SamplerState TextureSampler
+{
+	Filter = MIN_MAG_MIP_LINEAR;
+	AddressU = Wrap;
+	AddressV = Wrap;
+};
+
 struct DirectionalLightsProperties
 {
 	float4 direction;
@@ -19,6 +28,7 @@ struct VOut
     float4 color : COLOR;
 	float4 normal : TEXTCOORD0;
 	float4 worldPos : TEXCOORD1;
+	float2 uv : TEXCOORD2;
 };
 
 cbuffer ConstantBuffer
@@ -31,7 +41,7 @@ cbuffer ConstantBuffer
 	PointLightProperties pointLightsProperties[MAX_POINT_LIGHTS];
 };
 
-VOut VShader(float4 position : POSITION, float4 color : COLOR, float4 normal : NORMAL)
+VOut VShader(float4 position : POSITION, float4 color : COLOR, float4 normal : NORMAL, float2 uv : TEXCOORD)
 {
     VOut output;
 
@@ -39,15 +49,18 @@ VOut VShader(float4 position : POSITION, float4 color : COLOR, float4 normal : N
 	output.worldPos = output.position;
 	output.color = color;
 	output.normal = mul(modelRotation, normal);
+	output.uv = uv;
 
 
     return output;
 }
 
-float4 PShader(float4 position : SV_POSITION, float4 color : COLOR, float4 normal : TEXTCOORD0, float4 worldPos : TEXCOORD1) : SV_TARGET
+float4 PShader(float4 position : SV_POSITION, float4 color : COLOR, float4 normal : TEXTCOORD0, float4 worldPos : TEXCOORD1, float2 uv : TEXCOORD2) : SV_TARGET
 {
-	float4 finalColor = ambientColor;
+	float4 finalColor = float4(0, 0, 0, 0);
 	normal = normalize(normal);
+
+	float4 sampledDiffuseColor = diffuseTexture.Sample(TextureSampler, uv);
 
 	for (int i = 0; i < MAX_DIRECTIONAL_LIGHTS; i++)
 	{
@@ -70,7 +83,7 @@ float4 PShader(float4 position : SV_POSITION, float4 color : COLOR, float4 norma
 			specularColor = saturate(lightColor * specular);
 		}
 
-		finalColor += specularColor + lightColor * diffuseBrightness;
+		finalColor = specularColor + sampledDiffuseColor * (lightColor * diffuseBrightness + ambientColor);
 	}
 
 	for (int x = 0; x < MAX_POINT_LIGHTS; x++)
@@ -108,7 +121,7 @@ float4 PShader(float4 position : SV_POSITION, float4 color : COLOR, float4 norma
 
 		float attenuationFactor = a0 + a1 * distance + a2 * distance * distance;
 
-		finalColor += (specularColor + lightColor * diffuseBrightness) / attenuationFactor;
+		finalColor += (specularColor + sampledDiffuseColor * (lightColor * diffuseBrightness + ambientColor)) / attenuationFactor;
 	}
 
 	return finalColor;

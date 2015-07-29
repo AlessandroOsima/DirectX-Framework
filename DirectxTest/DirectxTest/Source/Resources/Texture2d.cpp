@@ -1,7 +1,7 @@
 #include "Texture2d.h"
 #include <assert.h>
 #include "../Graph/DirectxRenderer.h"
-
+#include <tchar.h>
 
 namespace Resources
 {
@@ -30,7 +30,24 @@ namespace Resources
 				shaderResource = nullptr;
 			}
 
-			needsReload = !renderer->CreateTextureResources(filename, &texture, &shaderResource);
+
+
+			DWORD currentDirectorySize = GetCurrentDirectory(0, nullptr);
+
+			TCHAR * texturesPath = "\\Data\\Textures\\";
+
+			int currentDirStringLenght = currentDirectorySize + _tcslen(texturesPath);
+
+			TCHAR * currentDirectoryBuffer = new TCHAR[currentDirStringLenght];
+
+			GetCurrentDirectory(currentDirectorySize, currentDirectoryBuffer);
+
+			_tcsncat_s(currentDirectoryBuffer, currentDirStringLenght, texturesPath, _tcslen(texturesPath));
+
+			std::string texturesFilePath = std::string(currentDirectoryBuffer);
+
+
+			needsReload = !renderer->CreateTextureResources(texturesFilePath + filename, &texture, &shaderResource);
 		}
 
 		return false;

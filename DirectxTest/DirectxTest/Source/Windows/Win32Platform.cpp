@@ -67,7 +67,7 @@ void Win32Platform::InitWindow(const WindowData & windowData)
 	wnd.hInstance = GetModuleHandle(NULL);
 	wnd.hCursor = LoadCursor(NULL, IDC_ARROW);
 	//wnd.hbrBackground = (HBRUSH)COLOR_WINDOW;
-	wnd.lpszClassName = L"WindowClassDirectX";
+	wnd.lpszClassName = "WindowClassDirectX";
 
 	RegisterClassEx(&wnd);
 
@@ -79,9 +79,9 @@ void Win32Platform::InitWindow(const WindowData & windowData)
 
 	AdjustWindowRect(&clientRect, WS_OVERLAPPEDWINDOW, FALSE);
 
-	std::wstring wstring = std::wstring(windowData.title.begin(), windowData.title.end());
+	std::string string = std::string(windowData.title.begin(), windowData.title.end());
 
-	hWnd = CreateWindowEx(NULL, L"WindowClassDirectX", wstring.c_str(), WS_OVERLAPPEDWINDOW, windowData.x, windowData.y, clientRect.right - clientRect.left, clientRect.bottom - clientRect.top, NULL, NULL, GetModuleHandle(NULL), NULL);
+	hWnd = CreateWindowEx(NULL, "WindowClassDirectX", string.c_str(), WS_OVERLAPPEDWINDOW, windowData.x, windowData.y, clientRect.right - clientRect.left, clientRect.bottom - clientRect.top, NULL, NULL, GetModuleHandle(NULL), NULL);
 
 	ShowWindow(hWnd, SW_SHOWDEFAULT);
 }

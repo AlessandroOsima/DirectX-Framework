@@ -7,7 +7,7 @@ class ShaderSet
 public:
 	ShaderSet();
 	
-	bool LoadFromFile(const std::wstring & vertextShaderPath, const std::string & vertexShaderMainFunction, const std::wstring & pixelShaderPath, const std::string & pixelShaderMainFunction, ID3D11Device * dev);
+	bool LoadFromFile(const std::string & vertextShaderPath, const std::string & vertexShaderMainFunction, const std::string & pixelShaderPath, const std::string & pixelShaderMainFunction, ID3D11Device * dev);
 	void CreateInputLayout(D3D11_INPUT_ELEMENT_DESC desc[], int numElements, ID3D11Device * dev);
 	void SetInDeviceContext(ID3D11DeviceContext * devcon);
 
