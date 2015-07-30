@@ -9,16 +9,19 @@ namespace App
 
 	void Drawer::OnInit(Graph::Scene & scene)
 	{
-		scene.SetAmbientLight(Math::Color(0.1f, 0.1f, 0.1f, 1.f));
+		scene.SetAmbientLight(Math::Color(0.05f, 0.05f, 0.05f, 1.f));
 
 		/*Graph::DirectionalLightProperties * dirL = scene.GetDirectionalLights();
 		dirL->direction = Math::Vector4f(0.5f, 0.5f, 1,0);
 		dirL->color = Math::Color(0.5f, 0.5f, 0.5f, 10);*/
 
 		Graph::PointLightProperties * pl1 = &scene.GetPointLights()[0];
-		pl1->worldPosition = Math::Vector4f(0, 50, 190, 0);
+		pl1->worldPosition = Math::Vector4f(0, 50, 150, 0);
 		pl1->color = Math::Color(1.f, 1.f, 1.f, 300);
+		pl1->attenuation = {1, 0.0045f, 0.00075f, 0};
+		
 
+		scene.SetActivePointLights(1);
 
         std::unique_ptr<Graph::Geometry> gm1(new Graph::Geometry);
 
@@ -170,7 +173,7 @@ namespace App
         //otherGeometry->rotate(Math::Vector3f(rotAmount,0,0));
 
 		Graph::PointLightProperties * pl1 = &scene.GetPointLights()[0];
-		pl1->worldPosition = pl1->worldPosition + Math::Vector4f(0, -0.0005f, 0, 0);
+		pl1->worldPosition = pl1->worldPosition + Math::Vector4f(-0.0005f, 0, 0, 0);
 
 		Graph::PointLightProperties * pl2 = &scene.GetPointLights()[1];
 		//pl2->worldPosition = pl2->worldPosition + Math::Vector4f(0, -0.0005f, 0, 0);

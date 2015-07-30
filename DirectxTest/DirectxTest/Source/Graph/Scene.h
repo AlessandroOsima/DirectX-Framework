@@ -45,6 +45,26 @@ namespace Graph
 			this->ambientLight = ambientLight;
 		}
 
+		inline unsigned int GetActiveDirectionalLights() const
+		{
+			return activeDirectionalLights;
+		}
+
+		inline void SetActiveDirectionalLights(unsigned int activeDirectional)
+		{
+			activeDirectionalLights = activeDirectional;
+		}
+
+		inline unsigned int GetActivePointLights() const 
+		{
+			return activePointLights;
+		}
+
+		inline void SetActivePointLights(unsigned int activePoint)
+		{
+			activePointLights = activePoint;
+		}
+
 	private:
 		std::vector<std::unique_ptr<Geometry>> geometries;
 		DirectxRenderer * activeRenderer;
@@ -53,6 +73,9 @@ namespace Graph
 		PointLightProperties pointLights[Graph::Constants::MAX_POINT_LIGHTS];
 
 		Math::Color ambientLight;
+
+		unsigned int activePointLights = 0;
+		unsigned int activeDirectionalLights = 0;
 	};
 
 	const std::vector<std::unique_ptr<Geometry>> & Scene::GetGeometries() 

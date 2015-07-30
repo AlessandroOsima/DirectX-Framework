@@ -18,7 +18,7 @@ namespace Graph
         void Init(const WindowData & windowData, HWND hWnd);
 
         void OnPreRender();
-		void RenderGeometry(const Math::Color & ambientLight, const DirectionalLightProperties * directionalLights, const PointLightProperties * pointLights, const Graph::Geometry & geometry, unsigned int geometryIndex);
+		void RenderGeometry(const Math::Color & ambientLight, const DirectionalLightProperties * directionalLights, const PointLightProperties * pointLights, const Graph::Geometry & geometry, unsigned int geometryIndex, unsigned int activeDirectionalLights, unsigned int activePointLights);
         void OnPostRender();
 
         void DeInit();
@@ -46,6 +46,8 @@ namespace Graph
         ID3D11RenderTargetView * backbuffer;
 
         ID3D11Buffer * constantBuffer;
+		ID3D11Buffer * psConstantBuffer;
+		ID3D11Buffer * perFramePSConstantBuffer;
 
         ShaderSet sSet;
 

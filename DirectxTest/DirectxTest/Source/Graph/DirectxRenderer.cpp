@@ -28,10 +28,19 @@ namespace Graph
 	{
 		Math::Matrix44 finalMatrix;
 		Math::Matrix44 modelMatrix;
+	};
+
+	struct PerFramePSConstantBuffer
+	{
 		Math::Vector4f eye;
+	};
+
+	struct PSConstantBuffer
+	{
 		Math::Color ambientLight;
 		DirectionalLightProperties  directionalLights[Constants::MAX_DIRECTIONAL_LIGHTS];
 		PointLightProperties  pointLights[Constants::MAX_POINT_LIGHTS];
+		Math::Vector4f activeLights;
 	};
 
     DirectxRenderer::DirectxRenderer() :usePerspective(true)
@@ -164,13 +173,37 @@ namespace Graph
 	    ZeroMemory(&constantBd, sizeof(constantBd));
 
 	    constantBd.Usage = D3D11_USAGE_DEFAULT;
-		constantBd.ByteWidth = 144 + sizeof(Math::Vector4f) + sizeof(DirectionalLightProperties) * Constants::MAX_DIRECTIONAL_LIGHTS + sizeof(PointLightProperties) * Constants::MAX_POINT_LIGHTS;
+		//144 + sizeof(Math::Vector4f) + sizeof(DirectionalLightProperties) * Constants::MAX_DIRECTIONAL_LIGHTS + sizeof(PointLightProperties) * Constants::MAX_POINT_LIGHTS;
+		constantBd.ByteWidth = sizeof(ConstantBuffer);
 	    constantBd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 
 	    dev->CreateBuffer(&constantBd, 0, &constantBuffer);
 
 	    devcon->VSSetConstantBuffers(0, 1, &constantBuffer);
-		devcon->PSSetConstantBuffers(0, 1, &constantBuffer);
+
+
+		D3D11_BUFFER_DESC perFramePSConstantBd;
+		ZeroMemory(&perFramePSConstantBd, sizeof(perFramePSConstantBd));
+
+		perFramePSConstantBd.Usage = D3D11_USAGE_DEFAULT;
+		perFramePSConstantBd.ByteWidth = sizeof(PerFramePSConstantBuffer);
+		perFramePSConstantBd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+
+		dev->CreateBuffer(&perFramePSConstantBd, 0, &perFramePSConstantBuffer);
+
+		devcon->PSSetConstantBuffers(0, 1, &perFramePSConstantBuffer);
+
+
+		D3D11_BUFFER_DESC pixelConstantBd;
+		ZeroMemory(&pixelConstantBd, sizeof(pixelConstantBd));
+		pixelConstantBd.Usage = D3D11_USAGE_DEFAULT;
+		pixelConstantBd.ByteWidth = sizeof(PSConstantBuffer);
+		pixelConstantBd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		dev->CreateBuffer(&pixelConstantBd, 0, &psConstantBuffer);
+
+		devcon->PSSetConstantBuffers(1, 1, &psConstantBuffer);
+
+
 
 	    if (usePerspective)
 	    {
@@ -204,9 +237,14 @@ namespace Graph
 	    float color[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	    devcon->ClearRenderTargetView(backbuffer, color);
 	    devcon->ClearDepthStencilView(depthBuffer, D3D11_CLEAR_DEPTH, 1.0f, 0.f);
+
+		PerFramePSConstantBuffer pfPSCBuffer;
+		pfPSCBuffer.eye = eyeLocation;
+		devcon->UpdateSubresource(perFramePSConstantBuffer, 0, 0, &pfPSCBuffer, 0, 0);
+
     }
 
-	void DirectxRenderer::RenderGeometry(const Math::Color & ambientLight, const DirectionalLightProperties * directionalLights, const PointLightProperties * pointLights, const Graph::Geometry & geometry, unsigned int geometryIndex)
+	void DirectxRenderer::RenderGeometry(const Math::Color & ambientLight, const DirectionalLightProperties * directionalLights, const PointLightProperties * pointLights, const Graph::Geometry & geometry, unsigned int geometryIndex, unsigned int activeDirectionalLights, unsigned int activePointLights)
     {
 		assert(directionalLights);
 		assert(pointLights);
@@ -231,20 +269,24 @@ namespace Graph
 		ConstantBuffer cBuffer; 
         cBuffer.finalMatrix = finalMatrix; 
         cBuffer.modelMatrix = geometry.getRotation();
-        cBuffer.eye = eyeLocation;
-		cBuffer.ambientLight = ambientLight;
+
+		PSConstantBuffer psCBuffer;
+		psCBuffer.ambientLight = ambientLight;
 		
 		for (int i = 0; i < Constants::MAX_DIRECTIONAL_LIGHTS; i++)
 		{
-			cBuffer.directionalLights[i] = directionalLights[i];
+			psCBuffer.directionalLights[i] = directionalLights[i];
 		}
 
 		for (int i = 0; i < Constants::MAX_POINT_LIGHTS; i++)
 		{
-			cBuffer.pointLights[i] = pointLights[i];
+			psCBuffer.pointLights[i] = pointLights[i];
 		}
 
+		psCBuffer.activeLights = {(float)activeDirectionalLights, (float)activePointLights, 0, 0};
+
 	    devcon->UpdateSubresource(constantBuffer, 0, 0, &cBuffer, 0, 0);
+		devcon->UpdateSubresource(psConstantBuffer, 0, 0, &psCBuffer, 0, 0);
 
 	    ID3D11Buffer * vertexBuffer = vertexBuffers[geometryIndex];
 
@@ -287,6 +329,11 @@ namespace Graph
 
     void DirectxRenderer::BuildBuffersForGeometry(const Graph::Geometry & geometry, unsigned int indexToBuffer)
     {
+		//We should not be able to submit a geometry with 0 vertices its useless (also since the single vertex and index size is found by doing "sizeof(geometry.getIndices()[0])" if my array has size 0 I'd be going out of array bounds)
+		if (!geometry.getVertices().size())
+		{
+			assert(0);
+		}
 
 	    buildVertexBufferForGeometry(geometry, indexToBuffer);
 	    buildIndexBufferForGeometry(geometry, indexToBuffer);
@@ -342,7 +389,7 @@ namespace Graph
         ZeroMemory(&bd, sizeof(bd));
 
         bd.Usage = D3D11_USAGE_DYNAMIC;
-	    bd.ByteWidth = sizeof(Math::Vertex) * geometry.getVertices().size();
+		bd.ByteWidth = sizeof(geometry.getVertices()[0]) * geometry.getVertices().size();
         bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
         bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
@@ -379,7 +426,7 @@ namespace Graph
 	    ZeroMemory(&bd, sizeof(bd));
 
 	    bd.Usage = D3D11_USAGE_DYNAMIC;
-	    bd.ByteWidth = sizeof(int) * geometry.getIndices().size();
+		bd.ByteWidth = sizeof(geometry.getIndices()[0]) * geometry.getIndices().size();
 	    bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	    bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
