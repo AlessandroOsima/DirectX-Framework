@@ -9,19 +9,29 @@ namespace App
 
 	void Drawer::OnInit(Graph::Scene & scene)
 	{
-		scene.SetAmbientLight(Math::Color(0.05f, 0.05f, 0.05f, 1.f));
+		scene.SetAmbientLight(Math::Color(0.2f, 0.2f, 0.2f, 1.f));
 
 		/*Graph::DirectionalLightProperties * dirL = scene.GetDirectionalLights();
 		dirL->direction = Math::Vector4f(0.5f, 0.5f, 1,0);
 		dirL->color = Math::Color(0.5f, 0.5f, 0.5f, 10);*/
 
 		Graph::PointLightProperties * pl1 = &scene.GetPointLights()[0];
-		pl1->worldPosition = Math::Vector4f(0, 50, 150, 0);
-		pl1->color = Math::Color(1.f, 1.f, 1.f, 300);
-		pl1->attenuation = {1, 0.0045f, 0.00075f, 0};
-		
+		pl1->worldPosition = Math::Vector4f(-50, 50, 150, 0); 
+		pl1->color = Math::Color(0.98f, 0.8f, 0.0f, 500);
+		pl1->attenuation = {1, 0.0025f, 0.00065f, 0};
 
-		scene.SetActivePointLights(1);
+
+		Graph::PointLightProperties * pl2 = &scene.GetPointLights()[1];
+		pl2->worldPosition = Math::Vector4f(50, 50, 150, 0);
+		pl2->color = Math::Color(1.f, 0.f, 0.f, 200);
+		pl2->attenuation = { 1, 0.0015f, 0.00065f, 0 };
+
+		Graph::PointLightProperties * pl3 = &scene.GetPointLights()[2];
+		pl3->worldPosition = Math::Vector4f(-50, -50, 150, 0);
+		pl3->color = Math::Color(0.f, 0.f, 1.f, 300);
+		pl3->attenuation = { 1, 0.0025f, 0.00065f, 0 };
+
+		scene.SetActivePointLights(3);
 
         std::unique_ptr<Graph::Geometry> gm1(new Graph::Geometry);
 
@@ -74,7 +84,7 @@ namespace App
 
 		gm2->rotate(Math::Vector3f(0, 40, 0));
 
-		gm2->GetDiffuseTexture().SetFilename("WoodDiffuseTest.dds"); 
+		gm2->GetDiffuseTexture().SetFilename("MetalPaintedDiffuse.dds"); 
 
 		scene.AddGeometry(std::move(gm2));
 
@@ -173,7 +183,7 @@ namespace App
         //otherGeometry->rotate(Math::Vector3f(rotAmount,0,0));
 
 		Graph::PointLightProperties * pl1 = &scene.GetPointLights()[0];
-		pl1->worldPosition = pl1->worldPosition + Math::Vector4f(-0.0005f, 0, 0, 0);
+		//pl1->worldPosition = pl1->worldPosition + Math::Vector4f(0.0005f, 0, 0, 0);
 
 		Graph::PointLightProperties * pl2 = &scene.GetPointLights()[1];
 		//pl2->worldPosition = pl2->worldPosition + Math::Vector4f(0, -0.0005f, 0, 0);

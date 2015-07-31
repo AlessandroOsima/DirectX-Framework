@@ -24,7 +24,7 @@ Math::Vertex triangle[] =
 
 namespace Graph
 {
-	struct ConstantBuffer
+	struct vsConstantBuffer
 	{
 		Math::Matrix44 finalMatrix;
 		Math::Matrix44 modelMatrix;
@@ -35,7 +35,7 @@ namespace Graph
 		Math::Vector4f eye;
 	};
 
-	struct PSConstantBuffer
+	struct PerGeometryPSConstantBuffer
 	{
 		Math::Color ambientLight;
 		DirectionalLightProperties  directionalLights[Constants::MAX_DIRECTIONAL_LIGHTS];
@@ -168,42 +168,17 @@ namespace Graph
 	    //set pipeline inputs
 	    devcon->IASetInputLayout(sSet.GetInputLayout());
 
-        //Create a buffer to hold shader constant data 
-	    D3D11_BUFFER_DESC constantBd;
-	    ZeroMemory(&constantBd, sizeof(constantBd));
-
-	    constantBd.Usage = D3D11_USAGE_DEFAULT;
-		//144 + sizeof(Math::Vector4f) + sizeof(DirectionalLightProperties) * Constants::MAX_DIRECTIONAL_LIGHTS + sizeof(PointLightProperties) * Constants::MAX_POINT_LIGHTS;
-		constantBd.ByteWidth = sizeof(ConstantBuffer);
-	    constantBd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-
-	    dev->CreateBuffer(&constantBd, 0, &constantBuffer);
-
-	    devcon->VSSetConstantBuffers(0, 1, &constantBuffer);
+		ConstantBuffer perVertexConstantBuffer(sizeof(vsConstantBuffer));
+		sSet.AddConstantBuffer(ConstantBufferBindTarget::BIND_VS, perVertexConstantBuffer);
+		
+		ConstantBuffer perFramePSConstantBuffer(sizeof(PerFramePSConstantBuffer));
+		sSet.AddConstantBuffer(ConstantBufferBindTarget::BIND_PS, perFramePSConstantBuffer);
 
 
-		D3D11_BUFFER_DESC perFramePSConstantBd;
-		ZeroMemory(&perFramePSConstantBd, sizeof(perFramePSConstantBd));
+		ConstantBuffer perGeometryPSConstantBuffer(sizeof(PerGeometryPSConstantBuffer));
+		sSet.AddConstantBuffer(ConstantBufferBindTarget::BIND_PS, perGeometryPSConstantBuffer);
 
-		perFramePSConstantBd.Usage = D3D11_USAGE_DEFAULT;
-		perFramePSConstantBd.ByteWidth = sizeof(PerFramePSConstantBuffer);
-		perFramePSConstantBd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-
-		dev->CreateBuffer(&perFramePSConstantBd, 0, &perFramePSConstantBuffer);
-
-		devcon->PSSetConstantBuffers(0, 1, &perFramePSConstantBuffer);
-
-
-		D3D11_BUFFER_DESC pixelConstantBd;
-		ZeroMemory(&pixelConstantBd, sizeof(pixelConstantBd));
-		pixelConstantBd.Usage = D3D11_USAGE_DEFAULT;
-		pixelConstantBd.ByteWidth = sizeof(PSConstantBuffer);
-		pixelConstantBd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		dev->CreateBuffer(&pixelConstantBd, 0, &psConstantBuffer);
-
-		devcon->PSSetConstantBuffers(1, 1, &psConstantBuffer);
-
-
+		sSet.SetConstantBuffers(this);
 
 	    if (usePerspective)
 	    {
@@ -240,7 +215,9 @@ namespace Graph
 
 		PerFramePSConstantBuffer pfPSCBuffer;
 		pfPSCBuffer.eye = eyeLocation;
-		devcon->UpdateSubresource(perFramePSConstantBuffer, 0, 0, &pfPSCBuffer, 0, 0);
+
+		ConstantBuffer & perFramePSConstantBuffer = sSet.GetBuffersForShader(ConstantBufferBindTarget::BIND_PS)[0];
+		perFramePSConstantBuffer.UpdateBuffer(&pfPSCBuffer, this);
 
     }
 
@@ -266,11 +243,14 @@ namespace Graph
 
 		devcon->PSSetShaderResources(0, 1, resources);
 
-		ConstantBuffer cBuffer; 
+		vsConstantBuffer cBuffer;
         cBuffer.finalMatrix = finalMatrix; 
         cBuffer.modelMatrix = geometry.getRotation();
 
-		PSConstantBuffer psCBuffer;
+		ConstantBuffer & vsBufferToUpdate = sSet.GetBuffersForShader(ConstantBufferBindTarget::BIND_VS)[0];
+		vsBufferToUpdate.UpdateBuffer(&cBuffer, this);
+
+		PerGeometryPSConstantBuffer psCBuffer;
 		psCBuffer.ambientLight = ambientLight;
 		
 		for (int i = 0; i < Constants::MAX_DIRECTIONAL_LIGHTS; i++)
@@ -285,8 +265,8 @@ namespace Graph
 
 		psCBuffer.activeLights = {(float)activeDirectionalLights, (float)activePointLights, 0, 0};
 
-	    devcon->UpdateSubresource(constantBuffer, 0, 0, &cBuffer, 0, 0);
-		devcon->UpdateSubresource(psConstantBuffer, 0, 0, &psCBuffer, 0, 0);
+		ConstantBuffer & perGeometryPSConstantBuffer = sSet.GetBuffersForShader(ConstantBufferBindTarget::BIND_PS)[1];
+		perGeometryPSConstantBuffer.UpdateBuffer(&psCBuffer, this);
 
 	    ID3D11Buffer * vertexBuffer = vertexBuffers[geometryIndex];
 
@@ -367,7 +347,7 @@ namespace Graph
 
         default:
             {
-
+				assert(0);
                 break;
             }
         }
@@ -463,6 +443,47 @@ namespace Graph
 		}
 
 		return true;
+	}
+
+	ID3D11Buffer * DirectxRenderer::GenerateConstantBuffer(size_t size)
+	{
+		ID3D11Buffer * buffer;
+
+		//Create a buffer to hold shader constant data 
+		D3D11_BUFFER_DESC constantBd;
+		ZeroMemory(&constantBd, sizeof(constantBd));
+
+		constantBd.Usage = D3D11_USAGE_DEFAULT;
+		constantBd.ByteWidth = size;
+		constantBd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+
+		dev->CreateBuffer(&constantBd, 0, &buffer);
+
+		return buffer;
+	}
+
+	void DirectxRenderer::BindConstantBufferToShaderStage(UINT vsSlot, UINT psSlot, ID3D11Buffer * constantBuffer, unsigned int bindTarget)
+	{
+
+		if (bindTarget & ConstantBufferBindTarget::BIND_PS)
+		{
+			devcon->PSSetConstantBuffers(psSlot, 1, &constantBuffer);
+		}
+
+		if (bindTarget & ConstantBufferBindTarget::BIND_VS)
+		{
+			devcon->VSSetConstantBuffers(psSlot, 1, &constantBuffer);
+		}
+		
+	}
+
+
+	void DirectxRenderer::UpdateSubresource(ID3D11Buffer * resourceToUpdate, const void * data)
+	{
+		assert(resourceToUpdate);
+		assert(data);
+
+		devcon->UpdateSubresource(resourceToUpdate, 0, 0, data, 0, 0);
 	}
 
 }

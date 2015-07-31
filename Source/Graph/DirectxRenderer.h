@@ -26,7 +26,12 @@ namespace Graph
         void BuildBuffersForGeometry(const Graph::Geometry & geometry, unsigned int indexToBuffer);
         void SetPrimitiveTopology(PrimitiveTopology primitiveTopology);
 
+		//Constant buffer
 		bool CreateTextureResources(const std::string & filename, ID3D11Resource ** texture, ID3D11ShaderResourceView ** shaderResource);
+		ID3D11Buffer * GenerateConstantBuffer(size_t size);
+		void BindConstantBufferToShaderStage(UINT vsSlot, UINT psSlot, ID3D11Buffer * constantBuffer, unsigned int bindTarget);
+		void UpdateSubresource(ID3D11Buffer * resourceToUpdate, const void * data);
+		////////////////
 
         ~DirectxRenderer();
 
