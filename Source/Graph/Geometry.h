@@ -4,6 +4,8 @@
 #include "../Math/Matrix44.h"
 #include "../Resources/Texture2d.h"
 #include "Graph.h"
+#include "ShaderSet.h"
+#include <assert.h>
 
 namespace Graph
 {
@@ -13,14 +15,38 @@ namespace Graph
 
         Geometry();
 
-		inline Resources::Texture2d & GetDiffuseTexture() 
+		inline std::unique_ptr<Resources::Texture2d> & GetDiffuseTexture()
 		{
 			return diffuseTexture;
 		}
 
-		inline const Resources::Texture2d & GetDiffuseTexture() const
+		inline const std::unique_ptr<Resources::Texture2d> & GetDiffuseTexture() const
 		{
 			return diffuseTexture;
+		}
+
+		inline std::unique_ptr<Resources::Texture2d> & GetNormalTexture()
+		{
+			return normalTexture;
+		}
+
+		inline const std::unique_ptr<Resources::Texture2d> & GetNormalTexture() const
+		{
+			return normalTexture;
+		}
+
+		inline void SetDiffuseTexture(std::unique_ptr<Resources::Texture2d> && texture)
+		{
+			assert(texture);
+
+			diffuseTexture = std::move(texture);
+		}
+
+		inline void SetNormalTexture(std::unique_ptr<Resources::Texture2d> && texture)
+		{
+			assert(texture);
+
+			diffuseTexture = std::move(texture);
 		}
 
         inline const std::vector<Math::Vertex> & getVertices() const
@@ -88,10 +114,32 @@ namespace Graph
             return translateMatrix;
         }
 
+		inline std::unique_ptr<Graph::ShaderSet> & GetShaderSet()
+		{
+			assert(shaderSet);
+			return shaderSet;
+		}
+
+
+		inline const std::unique_ptr<Graph::ShaderSet> & GetShaderSet() const
+		{
+			assert(shaderSet);
+			return shaderSet;
+		}
+
+
+		inline void SetShaderSet(std::unique_ptr<Graph::ShaderSet> && shaderSet)
+		{
+			assert(shaderSet);
+			this->shaderSet = std::move(shaderSet);
+		}
+
     private:
         std::vector<Math::Vertex> vertices;
 		std::vector<int> indices;
-		Resources::Texture2d diffuseTexture;
+		std::unique_ptr<Resources::Texture2d> diffuseTexture;
+		std::unique_ptr<Resources::Texture2d> normalTexture;
+		std::unique_ptr<Graph::ShaderSet> shaderSet;
 
         PrimitiveTopology primitiveTopology;
 

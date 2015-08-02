@@ -4,7 +4,9 @@
 #pragma comment(lib,"d3dcompiler.lib")
 
 #include <cassert>
+
 #include "..\Windows\WinUtils.h"
+#include <tchar.h>
 
 namespace Graph
 {
@@ -20,9 +22,30 @@ namespace Graph
 	{
 		assert(dev);
 
+
+		DWORD currentDirectorySize = GetCurrentDirectory(0, nullptr);
+
+		TCHAR * shadersPath = "\\Data\\Shaders\\";
+
+		int currentDirStringLenght = currentDirectorySize + _tcslen(shadersPath);
+
+		TCHAR * currentDirectoryBuffer = new TCHAR[currentDirStringLenght];
+
+		GetCurrentDirectory(currentDirectorySize, currentDirectoryBuffer);
+
+		_tcsncat_s(currentDirectoryBuffer, currentDirStringLenght, shadersPath, _tcslen(shadersPath));
+
+		std::string shaderFilePath = std::string(currentDirectoryBuffer);
+
+		std::string completeVertexShaderFilePath = shaderFilePath + vertextShaderPath;
+		std::string completePixelShaderFilePath = shaderFilePath + pixelShaderPath;
+
+		delete[] currentDirectoryBuffer;
+
+
 		ID3D10Blob  * Errors;
 
-		HRESULT res = D3DCompileFromFile(std::wstring(vertextShaderPath.begin(), vertextShaderPath.end()).c_str(), 0, 0, vertexShaderMainFunction.c_str(), "vs_4_0", D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_PREFER_FLOW_CONTROL, 0, &VSBlob, &Errors);
+		HRESULT res = D3DCompileFromFile(std::wstring(completeVertexShaderFilePath.begin(), completeVertexShaderFilePath.end()).c_str(), 0, 0, vertexShaderMainFunction.c_str(), "vs_4_0", D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_PREFER_FLOW_CONTROL, 0, &VSBlob, &Errors);
 		if (res != S_OK || Errors != nullptr)
 		{
 			WinUtils::PrintErrorMessage(res, "Error loading VS from file : ", "Error");
@@ -38,7 +61,7 @@ namespace Graph
 			return false;
 		}
 
-		res = D3DCompileFromFile(std::wstring(pixelShaderPath.begin(), pixelShaderPath.end()).c_str(), 0, 0, pixelShaderMainFunction.c_str(), "ps_4_0", D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_PREFER_FLOW_CONTROL, 0, &PSBlob, &Errors);
+		res = D3DCompileFromFile(std::wstring(completePixelShaderFilePath.begin(), completePixelShaderFilePath.end()).c_str(), 0, 0, pixelShaderMainFunction.c_str(), "ps_4_0", D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_PREFER_FLOW_CONTROL, 0, &PSBlob, &Errors);
 		if (res != S_OK || Errors != nullptr)
 		{
 			WinUtils::PrintErrorMessage(res, "Error loading PS from file : ", "Error");
@@ -86,7 +109,7 @@ namespace Graph
 		devcon->PSSetShader(pixelShader, 0, 0);
 	}
 
-	void ShaderSet::SetConstantBuffers(DirectxRenderer * renderer)
+	void ShaderSet::GenerateConstantBuffer(DirectxRenderer * renderer)
 	{
 		assert(renderer);
 
@@ -97,14 +120,14 @@ namespace Graph
 		int pos = 0;
 		for (auto & buffer : vertexShaderCSB)
 		{
-			buffer.GenerateAndBindBuffer(pos, 0, renderer, ConstantBufferBindTarget::BIND_VS);
+			buffer.GenerateBuffer(renderer, ConstantBufferBindTarget::BIND_VS);
 			pos++;
 		}
 
 		pos = 0;
 		for (auto & buffer : pixelShaderCSB)
 		{
-			buffer.GenerateAndBindBuffer(0, pos, renderer, ConstantBufferBindTarget::BIND_PS);
+			buffer.GenerateBuffer(renderer, ConstantBufferBindTarget::BIND_PS);
 			pos++;
 		}
 
@@ -112,7 +135,38 @@ namespace Graph
 		for (auto & buffer : pixelVertexShaderCSB)
 		{
 			//for now they are in the same ps/vs slot, change if needed 
-			buffer.GenerateAndBindBuffer(pos, pos, renderer, (unsigned int)(ConstantBufferBindTarget::BIND_PS | ConstantBufferBindTarget::BIND_VS));
+			buffer.GenerateBuffer(renderer, (unsigned int)(ConstantBufferBindTarget::BIND_PS | ConstantBufferBindTarget::BIND_VS));
+			pos++;
+		}
+	}
+
+	void ShaderSet::BindConstantBuffer(DirectxRenderer * renderer)
+	{
+		assert(renderer);
+
+		std::vector<ConstantBuffer> & vertexShaderCSB = constantBuffers[ConstantBufferBindTarget::BIND_VS];
+		std::vector<ConstantBuffer> & pixelShaderCSB = constantBuffers[ConstantBufferBindTarget::BIND_PS];
+		std::vector<ConstantBuffer> & pixelVertexShaderCSB = constantBuffers[ConstantBufferBindTarget::BIND_PS | ConstantBufferBindTarget::BIND_VS];
+
+		int pos = 0;
+		for (auto & buffer : vertexShaderCSB)
+		{
+			buffer.SetBuffer(pos, 0, renderer, ConstantBufferBindTarget::BIND_VS);
+			pos++;
+		}
+
+		pos = 0;
+		for (auto & buffer : pixelShaderCSB)
+		{
+			buffer.SetBuffer(0, pos, renderer, ConstantBufferBindTarget::BIND_PS);
+			pos++;
+		}
+
+		pos = 0;
+		for (auto & buffer : pixelVertexShaderCSB)
+		{
+			//for now they are in the same ps/vs slot, change if needed 
+			buffer.SetBuffer(pos, pos, renderer, (unsigned int)(ConstantBufferBindTarget::BIND_PS | ConstantBufferBindTarget::BIND_VS));
 			pos++;
 		}
 	}

@@ -19,7 +19,10 @@ namespace Graph
 		bool LoadFromFile(const std::string & vertextShaderPath, const std::string & vertexShaderMainFunction, const std::string & pixelShaderPath, const std::string & pixelShaderMainFunction, ID3D11Device * dev);
 		void CreateInputLayout(D3D11_INPUT_ELEMENT_DESC desc[], int numElements, ID3D11Device * dev);
 		void SetInDeviceContext(ID3D11DeviceContext * devcon);
-		void SetConstantBuffers(DirectxRenderer * renderer);
+		void GenerateConstantBuffer(DirectxRenderer * renderer);
+		void BindConstantBuffer(DirectxRenderer * renderer);
+
+
 		std::vector<ConstantBuffer> & GetBuffersForShader(unsigned int shaderBindFlags);
 
 		inline ID3D11InputLayout * GetInputLayout() { return inputLayout; };

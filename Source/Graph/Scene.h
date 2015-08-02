@@ -65,6 +65,12 @@ namespace Graph
 			activePointLights = activePoint;
 		}
 
+		inline DirectxRenderer * GetActiveRenderer()
+		{
+			assert(activeRenderer);
+			return activeRenderer;
+		}
+
 	private:
 		std::vector<std::unique_ptr<Geometry>> geometries;
 		DirectxRenderer * activeRenderer;
@@ -76,6 +82,12 @@ namespace Graph
 
 		unsigned int activePointLights = 0;
 		unsigned int activeDirectionalLights = 0;
+
+		bool usePerspective = true;
+
+		Math::Matrix44 projectionMatrix;
+		Math::Matrix44 lookAtMatrix;
+		Math::Vector4f eyeLocation;
 	};
 
 	const std::vector<std::unique_ptr<Geometry>> & Scene::GetGeometries() 

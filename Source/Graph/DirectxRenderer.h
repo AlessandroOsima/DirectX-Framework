@@ -18,7 +18,7 @@ namespace Graph
         void Init(const WindowData & windowData, HWND hWnd);
 
         void OnPreRender();
-		void RenderGeometry(const Math::Color & ambientLight, const DirectionalLightProperties * directionalLights, const PointLightProperties * pointLights, const Graph::Geometry & geometry, unsigned int geometryIndex, unsigned int activeDirectionalLights, unsigned int activePointLights);
+		void RenderGeometry(const Graph::Geometry & geometry, unsigned int geometryIndex);
         void OnPostRender();
 
         void DeInit();
@@ -33,6 +33,21 @@ namespace Graph
 		void UpdateSubresource(ID3D11Buffer * resourceToUpdate, const void * data);
 		////////////////
 
+		//Shader
+		void UseShader(ShaderSet * shaderSet);
+		std::unique_ptr<Graph::ShaderSet> GenerateShaderSetFromFile(const std::string & vertextShaderPath, const std::string & vertexShaderMainFunction, const std::string & pixelShaderPath, const std::string & pixelShaderMainFunction);
+		void CreateInputLayout(ShaderSet & inputLayoutShader, D3D11_INPUT_ELEMENT_DESC * ied, size_t elementSize);
+		////////////////
+
+		//Resources
+		void SetResources(ID3D11ShaderResourceView ** resources, unsigned int resourcesCount, unsigned int startSlot);
+		//
+
+		inline const WindowData & GetCurrentWindowData()
+		{
+			return currentWindowData;
+		}
+
         ~DirectxRenderer();
 
     private:
@@ -44,7 +59,7 @@ namespace Graph
         IDXGISwapChain *swapchain;
         ID3D11Device *dev;
         ID3D11DeviceContext *devcon;
-
+		ShaderSet * currentShaderSet;
 
 
         ID3D11DepthStencilView * depthBuffer;
@@ -54,15 +69,13 @@ namespace Graph
 		ID3D11Buffer * psConstantBuffer;
 		ID3D11Buffer * perFramePSConstantBuffer;
 
-        ShaderSet sSet;
+		WindowData currentWindowData;
+
+        //ShaderSet sSet;
 
 
         std::vector<ID3D11Buffer *> vertexBuffers;
         std::vector<ID3D11Buffer *> indexBuffers;
-
-        Math::Matrix44 projectionMatrix;
-        Math::Matrix44 lookAtMatrix;
-        Math::Vector4f eyeLocation;
         bool usePerspective;
     };
 }

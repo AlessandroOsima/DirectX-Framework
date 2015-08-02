@@ -24,33 +24,14 @@ Math::Vertex triangle[] =
 
 namespace Graph
 {
-	struct vsConstantBuffer
-	{
-		Math::Matrix44 finalMatrix;
-		Math::Matrix44 modelMatrix;
-	};
-
-	struct PerFramePSConstantBuffer
-	{
-		Math::Vector4f eye;
-	};
-
-	struct PerGeometryPSConstantBuffer
-	{
-		Math::Color ambientLight;
-		DirectionalLightProperties  directionalLights[Constants::MAX_DIRECTIONAL_LIGHTS];
-		PointLightProperties  pointLights[Constants::MAX_POINT_LIGHTS];
-		Math::Vector4f activeLights;
-	};
-
     DirectxRenderer::DirectxRenderer() :usePerspective(true)
     {
-	    projectionMatrix.identity();
-	    lookAtMatrix.identity();
     }
 
     void DirectxRenderer::Init(const WindowData & windowData, HWND hWnd)
     {
+		currentWindowData = windowData;
+
 	    //Create swap chain and directx device and device context
 	    DXGI_SWAP_CHAIN_DESC swapChainDesc;
 
@@ -131,78 +112,6 @@ namespace Graph
 
 	    devcon->RSSetViewports(1, &viewport);
 
-	    //Get the current app directory and use to find the shader files
-	    //windows api bullshit//////////////////////////////////////////////////////
-	    DWORD currentDirectorySize = GetCurrentDirectory(0, nullptr);
-
-	    TCHAR * shadersPath = "\\Data\\Shaders\\shaders.hlsl";
-
-	    int currentDirStringLenght = currentDirectorySize + _tcslen(shadersPath);
-
-	    TCHAR * currentDirectoryBuffer = new TCHAR[currentDirStringLenght];
-
-	    GetCurrentDirectory(currentDirectorySize, currentDirectoryBuffer);
-
-	    _tcsncat_s(currentDirectoryBuffer, currentDirStringLenght, shadersPath, _tcslen(shadersPath));
-
-	    std::string shaderFilePath = std::string(currentDirectoryBuffer);
-	    //////////////////////////////////////////////////////////////////////////
-
-	    //Load shader set
-	    sSet.LoadFromFile(shaderFilePath, "VShader", shaderFilePath, "PShader", dev);
-	    sSet.SetInDeviceContext(devcon);
-
-	    delete[] currentDirectoryBuffer;
-
-	    //shader input layout setup
-	    D3D11_INPUT_ELEMENT_DESC ied[] =
-	    {
-		    { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		    { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-            { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	    };
-
-	    sSet.CreateInputLayout(ied, 4, dev);
-
-	    //set pipeline inputs
-	    devcon->IASetInputLayout(sSet.GetInputLayout());
-
-		ConstantBuffer perVertexConstantBuffer(sizeof(vsConstantBuffer));
-		sSet.AddConstantBuffer(ConstantBufferBindTarget::BIND_VS, perVertexConstantBuffer);
-		
-		ConstantBuffer perFramePSConstantBuffer(sizeof(PerFramePSConstantBuffer));
-		sSet.AddConstantBuffer(ConstantBufferBindTarget::BIND_PS, perFramePSConstantBuffer);
-
-
-		ConstantBuffer perGeometryPSConstantBuffer(sizeof(PerGeometryPSConstantBuffer));
-		sSet.AddConstantBuffer(ConstantBufferBindTarget::BIND_PS, perGeometryPSConstantBuffer);
-
-		sSet.SetConstantBuffers(this);
-
-	    if (usePerspective)
-	    {
-		    projectionMatrix.perspective(Math::Deg2Rad(45), 800 / 600, 1.0f, 2000.0f);
-
-            eyeLocation = Math::Vector4f(0,0,0,0);
-
-		    Math::Vector3f eye = Math::Vector3f(eyeLocation.x, eyeLocation.y, eyeLocation.z);
-		    Math::Vector3f at = Math::Vector3f(0, 0, 10);
-		    Math::Vector3f up = Math::Vector3f(0, 1, 0);
-
-		    lookAtMatrix.lookAt(eye, at, up);
-
-	    }
-	    else
-	    {
-		    projectionMatrix.ortho(windowData.width, windowData.height, 1.0f, 100);
-
-		    Math::Matrix44 trasl;
-		    trasl.translate(Math::Vector3f(-windowData.width / 2, -windowData.height / 2, 0));
-
-		    projectionMatrix = trasl * projectionMatrix;
-	    }
-
 
         /////////////////////////////////
     }
@@ -212,61 +121,11 @@ namespace Graph
 	    float color[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	    devcon->ClearRenderTargetView(backbuffer, color);
 	    devcon->ClearDepthStencilView(depthBuffer, D3D11_CLEAR_DEPTH, 1.0f, 0.f);
-
-		PerFramePSConstantBuffer pfPSCBuffer;
-		pfPSCBuffer.eye = eyeLocation;
-
-		ConstantBuffer & perFramePSConstantBuffer = sSet.GetBuffersForShader(ConstantBufferBindTarget::BIND_PS)[0];
-		perFramePSConstantBuffer.UpdateBuffer(&pfPSCBuffer, this);
-
     }
 
-	void DirectxRenderer::RenderGeometry(const Math::Color & ambientLight, const DirectionalLightProperties * directionalLights, const PointLightProperties * pointLights, const Graph::Geometry & geometry, unsigned int geometryIndex, unsigned int activeDirectionalLights, unsigned int activePointLights)
+	void DirectxRenderer::RenderGeometry(const Graph::Geometry & geometry, unsigned int geometryIndex)
     {
-		assert(directionalLights);
-		assert(pointLights);
-
-	    Math::Matrix44 finalMatrix;
-
-	    finalMatrix.identity();
-
-	    if (usePerspective)
-	    {
-		    finalMatrix = geometry.getWorld() * lookAtMatrix * projectionMatrix;
-	    }
-	    else
-	    {
-		    finalMatrix = geometry.getWorld() * projectionMatrix;
-	    }
-
-		ID3D11ShaderResourceView * resources[1] = { geometry.GetDiffuseTexture().GetShaderResource()};
-
-		devcon->PSSetShaderResources(0, 1, resources);
-
-		vsConstantBuffer cBuffer;
-        cBuffer.finalMatrix = finalMatrix; 
-        cBuffer.modelMatrix = geometry.getRotation();
-
-		ConstantBuffer & vsBufferToUpdate = sSet.GetBuffersForShader(ConstantBufferBindTarget::BIND_VS)[0];
-		vsBufferToUpdate.UpdateBuffer(&cBuffer, this);
-
-		PerGeometryPSConstantBuffer psCBuffer;
-		psCBuffer.ambientLight = ambientLight;
-		
-		for (int i = 0; i < Constants::MAX_DIRECTIONAL_LIGHTS; i++)
-		{
-			psCBuffer.directionalLights[i] = directionalLights[i];
-		}
-
-		for (int i = 0; i < Constants::MAX_POINT_LIGHTS; i++)
-		{
-			psCBuffer.pointLights[i] = pointLights[i];
-		}
-
-		psCBuffer.activeLights = {(float)activeDirectionalLights, (float)activePointLights, 0, 0};
-
-		ConstantBuffer & perGeometryPSConstantBuffer = sSet.GetBuffersForShader(ConstantBufferBindTarget::BIND_PS)[1];
-		perGeometryPSConstantBuffer.UpdateBuffer(&psCBuffer, this);
+		UseShader(geometry.GetShaderSet().get());
 
 	    ID3D11Buffer * vertexBuffer = vertexBuffers[geometryIndex];
 
@@ -484,6 +343,38 @@ namespace Graph
 		assert(data);
 
 		devcon->UpdateSubresource(resourceToUpdate, 0, 0, data, 0, 0);
+	}
+	 
+	void DirectxRenderer::UseShader(ShaderSet * shaderSet)
+	{
+		assert(shaderSet);
+
+		currentShaderSet = shaderSet;
+
+		currentShaderSet->SetInDeviceContext(devcon);
+		devcon->IASetInputLayout(currentShaderSet->GetInputLayout());
+	}
+
+	std::unique_ptr<Graph::ShaderSet> DirectxRenderer::GenerateShaderSetFromFile(const std::string & vertextShaderPath, const std::string & vertexShaderMainFunction, const std::string & pixelShaderPath, const std::string & pixelShaderMainFunction)
+	{
+		std::unique_ptr<Graph::ShaderSet> sSet = std::make_unique<Graph::ShaderSet>();
+
+		sSet->LoadFromFile(vertextShaderPath, vertexShaderMainFunction, pixelShaderPath, pixelShaderMainFunction, dev);
+
+		return sSet;
+	}
+
+	void DirectxRenderer::CreateInputLayout(ShaderSet & inputLayoutShader, D3D11_INPUT_ELEMENT_DESC * ied, size_t elementSize)
+	{
+		assert(ied);
+
+		inputLayoutShader.CreateInputLayout(ied, 4, dev);
+	}
+
+	void DirectxRenderer::SetResources(ID3D11ShaderResourceView ** resources , unsigned int resourcesCount, unsigned int startSlot)
+	{
+		assert(resources);
+		devcon->PSSetShaderResources(startSlot, resourcesCount, resources);
 	}
 
 }

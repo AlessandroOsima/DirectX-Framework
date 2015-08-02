@@ -36,7 +36,7 @@ namespace Graph
 		renderer->UpdateSubresource(constantBuffer, data);
 	}
 
-	void ConstantBuffer::SetBuffer(unsigned int vsSlot, unsigned int psSlot, Graph::DirectxRenderer * renderer, ConstantBufferBindTarget bindTarget)
+	void ConstantBuffer::SetBuffer(unsigned int vsSlot, unsigned int psSlot, Graph::DirectxRenderer * renderer, unsigned int bindTarget)
 	{
 		assert(renderer);
 		assert(constantBuffer);
