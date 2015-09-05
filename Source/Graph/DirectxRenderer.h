@@ -26,17 +26,17 @@ namespace Graph
         void BuildBuffersForGeometry(const Graph::Geometry & geometry, unsigned int indexToBuffer);
         void SetPrimitiveTopology(PrimitiveTopology primitiveTopology);
 
-		//Constant buffer
+		//Constant buffers
 		bool CreateTextureResources(const std::string & filename, ID3D11Resource ** texture, ID3D11ShaderResourceView ** shaderResource);
 		ID3D11Buffer * GenerateConstantBuffer(size_t size);
 		void BindConstantBufferToShaderStage(UINT vsSlot, UINT psSlot, ID3D11Buffer * constantBuffer, unsigned int bindTarget);
 		void UpdateSubresource(ID3D11Buffer * resourceToUpdate, const void * data);
 		////////////////
 
-		//Shader
+		//Shaders
 		void UseShader(ShaderSet * shaderSet);
-		std::unique_ptr<Graph::ShaderSet> GenerateShaderSetFromFile(const std::string & vertextShaderPath, const std::string & vertexShaderMainFunction, const std::string & pixelShaderPath, const std::string & pixelShaderMainFunction);
-		void CreateInputLayout(ShaderSet & inputLayoutShader, D3D11_INPUT_ELEMENT_DESC * ied, size_t elementSize);
+		std::unique_ptr<Graph::ShaderSet> GenerateShaderSetFromFile(const Resources::Shaders::ShadersInfo & info);
+		void CreateInputLayout(D3D11_INPUT_ELEMENT_DESC * ied, size_t elementCount, const void * shaderByteCode, size_t bytecodeSize, ID3D11InputLayout ** inputLayout);
 		////////////////
 
 		//Resources
@@ -70,9 +70,6 @@ namespace Graph
 		ID3D11Buffer * perFramePSConstantBuffer;
 
 		WindowData currentWindowData;
-
-        //ShaderSet sSet;
-
 
         std::vector<ID3D11Buffer *> vertexBuffers;
         std::vector<ID3D11Buffer *> indexBuffers;

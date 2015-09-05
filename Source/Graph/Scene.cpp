@@ -1,6 +1,7 @@
 #include "Scene.h"
 #include "DirectxRenderer.h"
 #include <assert.h>
+#include "../Platform/Platform.h"
 
 namespace Graph
 {
@@ -78,8 +79,14 @@ namespace Graph
 		//TODO Use a proper resource manager for textures and shaders
 		geom->GetDiffuseTexture()->Load(activeRenderer);
 
-		geom->GetShaderSet()->GenerateConstantBuffer(activeRenderer);
-		geom->GetShaderSet()->BindConstantBuffer(activeRenderer);
+		assert(GCurrentPlatform);
+
+		ShaderSet * sSet = GCurrentPlatform->GetShaderSetManager().Get(geom->GetShaderSet());
+
+		assert(sSet);
+
+		sSet->GenerateConstantBuffer(activeRenderer);
+		sSet->BindConstantBuffer(activeRenderer);
 
 		return geom;
         
@@ -108,18 +115,28 @@ namespace Graph
 				finalMatrix = geometries[i]->getWorld() * projectionMatrix;
 			}
 
+
 			//Update Constant buffers
 			PerFramePSConstantBuffer pfPSCBuffer;
 			pfPSCBuffer.eye = eyeLocation;
 
-			ConstantBuffer & perFramePSConstantBuffer = geometries[i]->GetShaderSet()->GetBuffersForShader(ConstantBufferBindTarget::BIND_PS)[0];
+			assert(GCurrentPlatform);
+
+			Graph::ShaderSet * sSet = GCurrentPlatform->GetShaderSetManager().Get(geometries[i]->GetShaderSet());
+
+			assert(sSet);
+
+			activeRenderer->UseShader(sSet);
+
+
+			ConstantBuffer & perFramePSConstantBuffer = sSet->GetBuffersForShader(Resources::Shaders::SHADER_TYPES::PIXEL_SHADER)[0];
 			perFramePSConstantBuffer.UpdateBuffer(&pfPSCBuffer, activeRenderer);
 
 			vsConstantBuffer cBuffer;
 			cBuffer.finalMatrix = finalMatrix;
 			cBuffer.modelMatrix = geometries[i]->getRotation();
 
-			ConstantBuffer & vsBufferToUpdate = geometries[i]->GetShaderSet()->GetBuffersForShader(ConstantBufferBindTarget::BIND_VS)[0];
+			ConstantBuffer & vsBufferToUpdate = sSet->GetBuffersForShader(Resources::Shaders::SHADER_TYPES::VERTEX_SHADER)[0];
 			vsBufferToUpdate.UpdateBuffer(&cBuffer, activeRenderer);
 
 			PerGeometryPSConstantBuffer psCBuffer;
@@ -137,7 +154,7 @@ namespace Graph
 
 			psCBuffer.activeLights = { (float)activeDirectionalLights, (float)activePointLights, 0, 0 };
 
-			ConstantBuffer & perGeometryPSConstantBuffer = geometries[i]->GetShaderSet()->GetBuffersForShader(ConstantBufferBindTarget::BIND_PS)[1];
+			ConstantBuffer & perGeometryPSConstantBuffer = sSet->GetBuffersForShader(Resources::Shaders::SHADER_TYPES::PIXEL_SHADER)[1];
 			perGeometryPSConstantBuffer.UpdateBuffer(&psCBuffer, activeRenderer);
 
 			//Set resources

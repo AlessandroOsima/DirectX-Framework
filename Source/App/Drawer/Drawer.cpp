@@ -1,67 +1,19 @@
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     #include "Drawer.h"
 #include <memory>
 #include "../../Graph/Geometry.h"
-#include "../../Graph/ShaderSet.h"
 #include "../../Graph/DirectxRenderer.h"
 #include "../../Graph/Lights/Light.h"
+#include "../../Resources/Resources.h"
+
+
 namespace App
 {
-	struct vsConstantBuffer
-	{
-		Math::Matrix44 finalMatrix;
-		Math::Matrix44 modelMatrix;
-	};
-
-	struct PerFramePSConstantBuffer
-	{
-		Math::Vector4f eye;
-	};
-
-	struct PerGeometryPSConstantBuffer
-	{
-		Math::Color ambientLight;
-		Graph::DirectionalLightProperties  directionalLights[Graph::Constants::MAX_DIRECTIONAL_LIGHTS];
-		Graph::PointLightProperties  pointLights[Graph::Constants::MAX_POINT_LIGHTS];
-		Math::Vector4f activeLights;
-	};
-
-
 	Drawer::Drawer() : rotAmount(0), side(true)
 	{}
 
 	void Drawer::OnInit(Graph::Scene & scene)
 	{
 		scene.SetAmbientLight(Math::Color(0.2f, 0.2f, 0.2f, 1.f));
-
-		//
-		//Load shader set
-		std::unique_ptr<Graph::ShaderSet> sSet = scene.GetActiveRenderer()->GenerateShaderSetFromFile("shaders.hlsl", "VShader", "shaders.hlsl", "PShader");
-
-
-		//shader input layout setup
-		D3D11_INPUT_ELEMENT_DESC ied[] =
-		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		};
-
-		scene.GetActiveRenderer()->CreateInputLayout(*sSet, ied, 4);
-
-		//set pipeline inputs
-
-		Graph::ConstantBuffer perVertexConstantBuffer(sizeof(vsConstantBuffer));
-		sSet->AddConstantBuffer(Graph::ConstantBufferBindTarget::BIND_VS, perVertexConstantBuffer);
-
-		Graph::ConstantBuffer perFramePSConstantBuffer(sizeof(PerFramePSConstantBuffer));
-		sSet->AddConstantBuffer(Graph::ConstantBufferBindTarget::BIND_PS, perFramePSConstantBuffer);
-
-
-		Graph::ConstantBuffer perGeometryPSConstantBuffer(sizeof(PerGeometryPSConstantBuffer));
-		sSet->AddConstantBuffer(Graph::ConstantBufferBindTarget::BIND_PS, perGeometryPSConstantBuffer);
-		//
-
 
 		Graph::PointLightProperties * pl1 = &scene.GetPointLights()[0];
 		pl1->worldPosition = Math::Vector4f(-50, 50, 150, 0); 
@@ -95,7 +47,7 @@ namespace App
 
 		gm1->SetDiffuseTexture(std::move(texture));
 		
-		gm1->SetShaderSet(std::move(sSet));
+		gm1->SetShaderSet(Resources::Shaders::SHADERS_IDX::BLINN_PHONG_TEXTURE);
 
         //Using vs 2012
         const int size = 6;
@@ -119,7 +71,7 @@ namespace App
 		geometry = scene.AddGeometry(std::move(gm1));
 
 
-		/*
+		
 		std::unique_ptr<Graph::Geometry> gm2(new Graph::Geometry);
 
 		gm2->SetPrimitiveTopology(Graph::PrimitiveTopology::TriangleList);
@@ -140,10 +92,12 @@ namespace App
 		std::unique_ptr<Resources::Texture2d> diffuseTextureGm2 = std::make_unique<Resources::Texture2d>();
 		diffuseTextureGm2->SetFilename("MetalPaintedDiffuse.dds");
 
+		gm2->SetShaderSet(Resources::Shaders::SHADERS_IDX::BLINN_PHONG_TEXTURE);
+
 		gm2->SetDiffuseTexture(std::move(diffuseTextureGm2));
 
 		scene.AddGeometry(std::move(gm2));
-		*/
+		
 
 		/*
 
@@ -236,11 +190,11 @@ namespace App
 			side = true;
 		}
 
-		//geometry->rotate(Math::Vector3f(rotAmount, 0, 0));
+		geometry->rotate(Math::Vector3f(0, -rotAmount, 0));
         //otherGeometry->rotate(Math::Vector3f(rotAmount,0,0));
 
 		Graph::PointLightProperties * pl1 = &scene.GetPointLights()[0];
-		//pl1->worldPosition = pl1->worldPosition + Math::Vector4f(0.0005f, 0, 0, 0);
+		pl1->worldPosition = pl1->worldPosition + Math::Vector4f(-0.0005f, 0, 0, 0);
 
 		Graph::PointLightProperties * pl2 = &scene.GetPointLights()[1];
 		//pl2->worldPosition = pl2->worldPosition + Math::Vector4f(0, -0.0005f, 0, 0);

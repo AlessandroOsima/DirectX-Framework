@@ -28,6 +28,7 @@ void Win32Platform::Init(const WindowData & windowData, std::unique_ptr<App::App
 
 	InitWindow(windowData);
 	renderer.Init(windowData, hWnd);
+	shaderSetManager.Init(&renderer);
 	scene.Init(&renderer);
 
 	userApp->OnInit(scene);
@@ -90,7 +91,18 @@ void Win32Platform::InitWindow(const WindowData & windowData)
 Win32Platform::~Win32Platform()
 {
 	userApp->OnDeInit(scene);
+	shaderSetManager.DeInit();
 	renderer.DeInit();
+}
+
+Resources::ShaderSetManager & Win32Platform::GetShaderSetManager()
+{
+	return shaderSetManager;
+}
+
+Graph::Scene & Win32Platform::GetScene()
+{
+	return scene;
 }
 
 LRESULT CALLBACK WindowsMessages(

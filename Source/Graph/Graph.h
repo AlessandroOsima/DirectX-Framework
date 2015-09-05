@@ -9,9 +9,4 @@ namespace Graph
         TriangleList,
     };
 
-	enum ConstantBufferBindTarget
-	{
-		BIND_VS = 0x1,
-		BIND_PS = 0x2,
-	};
 }

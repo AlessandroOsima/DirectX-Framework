@@ -14,9 +14,10 @@
 #include <string>
 
 #include "../App/App.h"
-#include "../Graph/Scene.h"
+#include "../Platform/Platform.h"
 
-class Win32Platform
+
+class Win32Platform : public Platform
 {
 public:
 	Win32Platform();
@@ -27,12 +28,17 @@ public:
 
 	~Win32Platform();
 
+	virtual Resources::ShaderSetManager & GetShaderSetManager() override;
+	virtual Graph::Scene & GetScene() override;
+
 private:
 	void InitWindow(const WindowData & windowData);
 	bool endApp;
 	HWND hWnd;
 	std::unique_ptr<App::AppCallbacks> userApp;
+
 	Graph::Scene scene;
+	Resources::ShaderSetManager shaderSetManager;
 
 	Graph::DirectxRenderer renderer;
 

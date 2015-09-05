@@ -1,0 +1,13 @@
+stages
+
+v->
+shaders.hlsl
+VShader
+vs_5_0
+3077
+
+p->
+shaders.hlsl
+PShader
+ps_5_0
+3077

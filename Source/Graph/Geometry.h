@@ -5,6 +5,7 @@
 #include "../Resources/Texture2d.h"
 #include "Graph.h"
 #include "ShaderSet.h"
+#include "../Resources/Resources.h"
 #include <assert.h>
 
 namespace Graph
@@ -114,24 +115,21 @@ namespace Graph
             return translateMatrix;
         }
 
-		inline std::unique_ptr<Graph::ShaderSet> & GetShaderSet()
+		inline Resources::Shaders::SHADERS_IDX  GetShaderSet()
 		{
-			assert(shaderSet);
-			return shaderSet;
+			return shaderIndex;
 		}
 
 
-		inline const std::unique_ptr<Graph::ShaderSet> & GetShaderSet() const
+		inline const Resources::Shaders::SHADERS_IDX GetShaderSet() const
 		{
-			assert(shaderSet);
-			return shaderSet;
+			return shaderIndex;
 		}
 
 
-		inline void SetShaderSet(std::unique_ptr<Graph::ShaderSet> && shaderSet)
+		inline void SetShaderSet(Resources::Shaders::SHADERS_IDX shaderIndex)
 		{
-			assert(shaderSet);
-			this->shaderSet = std::move(shaderSet);
+			this->shaderIndex = shaderIndex;
 		}
 
     private:
@@ -139,7 +137,7 @@ namespace Graph
 		std::vector<int> indices;
 		std::unique_ptr<Resources::Texture2d> diffuseTexture;
 		std::unique_ptr<Resources::Texture2d> normalTexture;
-		std::unique_ptr<Graph::ShaderSet> shaderSet;
+		Resources::Shaders::SHADERS_IDX shaderIndex;
 
         PrimitiveTopology primitiveTopology;
 

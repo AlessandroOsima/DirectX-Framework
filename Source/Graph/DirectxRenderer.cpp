@@ -125,7 +125,6 @@ namespace Graph
 
 	void DirectxRenderer::RenderGeometry(const Graph::Geometry & geometry, unsigned int geometryIndex)
     {
-		UseShader(geometry.GetShaderSet().get());
 
 	    ID3D11Buffer * vertexBuffer = vertexBuffers[geometryIndex];
 
@@ -324,12 +323,12 @@ namespace Graph
 	void DirectxRenderer::BindConstantBufferToShaderStage(UINT vsSlot, UINT psSlot, ID3D11Buffer * constantBuffer, unsigned int bindTarget)
 	{
 
-		if (bindTarget & ConstantBufferBindTarget::BIND_PS)
+		if (bindTarget & Resources::Shaders::SHADER_TYPES::PIXEL_SHADER)
 		{
 			devcon->PSSetConstantBuffers(psSlot, 1, &constantBuffer);
 		}
 
-		if (bindTarget & ConstantBufferBindTarget::BIND_VS)
+		if (bindTarget & Resources::Shaders::SHADER_TYPES::VERTEX_SHADER)
 		{
 			devcon->VSSetConstantBuffers(psSlot, 1, &constantBuffer);
 		}
@@ -351,24 +350,25 @@ namespace Graph
 
 		currentShaderSet = shaderSet;
 
-		currentShaderSet->SetInDeviceContext(devcon);
+		currentShaderSet->SetInDeviceContext(devcon, Resources::Shaders::SHADER_TYPES::VERTEX_SHADER | Resources::Shaders::SHADER_TYPES::PIXEL_SHADER);
+
 		devcon->IASetInputLayout(currentShaderSet->GetInputLayout());
 	}
 
-	std::unique_ptr<Graph::ShaderSet> DirectxRenderer::GenerateShaderSetFromFile(const std::string & vertextShaderPath, const std::string & vertexShaderMainFunction, const std::string & pixelShaderPath, const std::string & pixelShaderMainFunction)
+	std::unique_ptr<Graph::ShaderSet> DirectxRenderer::GenerateShaderSetFromFile(const Resources::Shaders::ShadersInfo & info)
 	{
 		std::unique_ptr<Graph::ShaderSet> sSet = std::make_unique<Graph::ShaderSet>();
 
-		sSet->LoadFromFile(vertextShaderPath, vertexShaderMainFunction, pixelShaderPath, pixelShaderMainFunction, dev);
+		sSet->LoadFromFile(info, dev);
 
 		return sSet;
 	}
 
-	void DirectxRenderer::CreateInputLayout(ShaderSet & inputLayoutShader, D3D11_INPUT_ELEMENT_DESC * ied, size_t elementSize)
+	void DirectxRenderer::CreateInputLayout(D3D11_INPUT_ELEMENT_DESC * ied, size_t elementCount, const void * shaderByteCode, size_t bytecodeSize, ID3D11InputLayout ** inputLayout)
 	{
 		assert(ied);
 
-		inputLayoutShader.CreateInputLayout(ied, 4, dev);
+		dev->CreateInputLayout(ied, elementCount, shaderByteCode, bytecodeSize, inputLayout);
 	}
 
 	void DirectxRenderer::SetResources(ID3D11ShaderResourceView ** resources , unsigned int resourcesCount, unsigned int startSlot)
